@@ -1,0 +1,249 @@
+#lang r6rs
+
+;-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+;-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+;-*-*                                                                 *-*-
+;-*-*                            Database                             *-*-
+;-*-*                                                                 *-*-
+;-*-*                       Wolfgang De Meuter                        *-*-
+;-*-*                   2010  Software Languages Lab                  *-*-
+;-*-*                    Vrije Universiteit Brussel                   *-*-
+;-*-*                                                                 *-*-
+;-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+;-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+
+(library
+ (database)
+ (export new open delete!
+         create-table drop-table!
+         select-from/eq
+         insert-into-table! create-index!
+         delete-where! print-table print)
+ (import (prefix (a-d disk disk) disk:)
+         (a-d file constants)
+         (prefix (a-d disk file-system) fs:)
+         (prefix (a-d db table fixed-size-slots table) tbl:)
+         (prefix (a-d db table fixed-size-slots schema) scma:)
+         (prefix (a-d db index b-tree b-tree-with-duplicates) btree:)
+         (rnrs base)
+         (rnrs control)
+         (rnrs lists)
+         (only (rnrs io simple) display newline))
+ 
+ (define *num* 0)
+ (define (gennum)
+   (let ((res *num*))
+     (set! *num* (+ *num* 1))
+     res))
+ 
+ (define meta-schema:table `((string  ,fs:filename-size)
+                             (natural 2)))
+ (define table:table-name    0)
+ (define table:table-id      1)
+ 
+ 
+ (define meta-schema:indexes `((natural 2)                 ; table identity
+                               (string  ,fs:filename-size) ; index name
+                               (natural 2)))               ; attribute-number of this index (i.e. in the table)
+ (define indexes:tble-idty  0)
+ (define indexes:index-name 1)
+ (define indexes:key-att    2) 
+ 
+ (define db-tag 'database)
+ 
+ (define (make tbls idxs)
+   (cons db-tag (cons tbls idxs)))
+ (define (tables dbse)
+   (car (cdr dbse)))
+ (define (indexes dbse)
+   (cdr (cdr dbse)))
+ 
+ (define (new disk name)
+   (define tbls (tbl:new disk (string-append "TBL" name) meta-schema:table))
+   (define idxs (tbl:new disk (string-append "IDX" name) meta-schema:indexes))
+   (make tbls idxs))
+ 
+ (define (open disk name)
+   (define tbls (tbl:open disk name))
+   (define idxs (tbl:open disk name))
+   (make tbls idxs))
+ 
+ (define (create-table dbse name scma)
+   (define tbls (tables dbse))
+   (define disk (tbl:disk tbls))
+   (define tble (tbl:new disk name scma))
+   (define idty (gennum))
+   (tbl:insert! tbls (list name idty))
+   tble)
+ 
+ (define (find-id-in-meta-table dbse tabl)
+   (define name (tbl:name tabl))
+   (define tbls (tables dbse))
+   (tbl:set-current-to-first! tbls)
+   (let find-table
+     ((tuple (tbl:peek tbls)))
+     (let ((tble-name (car tuple))
+           (tble-idty (cadr tuple)))
+       (if (string=? tble-name name)
+           tble-idty
+           (if (not (eq? (tbl:set-current-to-next! tbls) no-current))
+               (find-table (tbl:peek tbls))
+               not-found)))))
+ 
+ (define (for-all-tables dbse proc)
+   (define tbls (tables dbse))
+   (define disk (tbl:disk tbls))
+   (when (not (eq? (tbl:set-current-to-first! tbls) no-current))
+     (let all-tables
+       ((tuple (tbl:peek tbls)))
+       (let ((tabl (tbl:open disk (list-ref tuple table:table-name))))
+         (if (and (proc tabl)
+                  (not (eq? (tbl:set-current-to-next! tbls) no-current)))
+             (all-tables (tbl:peek tbls)))))))
+ 
+ (define (for-all-indices dbse tble proc)
+   (define idxs (indexes dbse))
+   (define disk (tbl:disk idxs))
+   (define idty (find-id-in-meta-table dbse tble))
+   (when (not (eq? (tbl:set-current-to-first! idxs) no-current))
+     (let all-index-tuples
+       ((tuple (tbl:peek idxs)))
+       (cond ((= (list-ref tuple indexes:tble-idty) idty) ; the index belongs to the tble-indx
+              (let ((indx (btree:open disk (list-ref tuple indexes:index-name))))
+                (if (and (proc indx (list-ref tuple indexes:key-att))
+                         (not (eq? (tbl:set-current-to-next! idxs) no-current)))
+                    (all-index-tuples (tbl:peek idxs)))))
+             ((not (eq? (tbl:set-current-to-next! idxs) no-current))
+              (all-index-tuples (tbl:peek idxs)))))))
+ 
+ (define (for-all-tuples table proc)
+   (if (not (eq? (tbl:set-current-to-first! table) no-current))
+       (let all-tuples
+         ((tuple (tbl:peek table)))
+         (let ((curr (tbl:current table)))
+           (if (and (proc tuple curr)
+                    (not (eq? (tbl:set-current-to-next! table) no-current)))
+               (all-tuples (tbl:peek table)))))))
+ 
+ (define (create-index! dbse tabl name attribute) 
+   (define disk (tbl:disk tabl))
+   (define tbls (tables dbse))
+   (define idxs (indexes dbse))
+   (define idty (find-id-in-meta-table dbse tabl))
+   (define scma (tbl:schema tabl))
+   (define indx (btree:new disk name 
+                           (scma:type scma attribute) 
+                           (scma:size scma attribute)))
+   (tbl:insert! idxs (list idty name attribute)) 
+   (for-all-tuples
+    tabl (lambda (tuple rid)
+           (btree:insert! indx (list-ref tuple attribute) rid)))
+   (tbl:close! idxs))
+ 
+ (define (insert-into-table! dbse tble tuple)
+   (define idxs (indexes dbse))
+   (let ((tupl-rcid  (tbl:insert! tble tuple)))
+     (tbl:close! tble)
+     (for-all-indices dbse tble 
+                      (lambda (indx att)
+                        (btree:insert! indx (list-ref tuple att) tupl-rcid)
+                        (btree:flush! indx)))))
+ 
+ (define (select-from/eq dbse tble attr valu)
+   (define scma (tbl:schema tble))
+   (define type (scma:type scma attr))
+   (define eqls (vector-ref equals type))
+   (define indx ())
+   (define rslt ())
+   (for-all-indices dbse tble (lambda (idx att) ;first try to find a suitable index
+                                (when (= att attr)
+                                  (set! indx idx)
+                                  #f)))
+   (if (null? indx)
+       ;; there is no index we can use => search the tuple(s) sequentially in the table itself:
+       (for-all-tuples tble (lambda (tple rid2)
+                              (if (eqls (list-ref tple attr) valu)
+                                  (set! rslt (cons (tbl:peek tble) rslt)))))
+       ;; there is a suitable index => use it to locate the tuple(s) fast:
+       (let loop
+         ((cur? (eq? (btree:find! indx valu) done)))
+         (when cur?
+           (tbl:current! tble (cdr (btree:peek indx))) ;use rcid to find tuple in table
+           (set! rslt (cons (tbl:peek tble) rslt))
+           (loop (and (eq? (btree:set-current-to-next! indx) done)
+                      (eqls (car (btree:peek indx)) valu))))))
+   rslt)
+ 
+ (define (delete-where! dbse tble attr valu)
+   (define scma (tbl:schema tble))
+   (define type (scma:type scma attr))
+   (define eqls (vector-ref equals type))
+   (define rcid ())
+   (define tupl ())
+   (for-all-indices dbse tble 
+                    (lambda (indx att) ; first try to use an index to locate the tuple fast
+                      (when (= att attr)
+                        (let ((cur? (btree:find! indx valu)))
+                          (when (eq? cur? done)
+                            (set! rcid (cdr (btree:peek indx)))
+                            (tbl:current! tble rcid)
+                            (set! tupl (tbl:peek tble)) 
+                            #f)))))
+   (if (null? rcid)               ; there were no indexes => search tuple sequentially in the table itself
+       (for-all-tuples tble (lambda (tple rid2)
+                              (when (eqls (list-ref tple attr) valu)
+                                (set! tupl tple)
+                                (set! rcid rid2)))))
+   (unless (null? rcid)
+     (for-all-indices dbse tble  ; else remove the tuple from all indexes
+                      (lambda (indx att)
+                        (when (eq? (btree:find! indx (list-ref tupl att)) done)
+                          (btree:delete! indx)
+                          (btree:flush!  indx))))
+     (tbl:delete! tble rcid)
+     (tbl:close! tble)))
+ 
+ (define (delete-from-meta-table dbse tabl)
+   (define name (tbl:name tabl))
+   (define tbls (tables dbse))
+   (tbl:set-current-to-first! tbls)
+   (let find-table
+     ((tuple (tbl:peek tbls)))
+     (let ((tble-name (car tuple)))
+       (cond ((string=? tble-name name)
+              (tbl:delete! tbls (tbl:current tbls)))
+             ((not (eq? (tbl:set-current-to-next! tbls) no-current))
+              (find-table (tbl:peek tbls)))
+             (else not-found)))))
+ 
+ (define (drop-table! dbse table)
+   (define tbls (tables dbse))
+   (define idxs (indexes dbse))
+   (define disk (tbl:disk tbls))
+   (for-all-indices dbse table 
+                    (lambda (indx att)
+                      (btree:drop! indx)))
+   (delete-from-meta-table dbse table)
+   (tbl:drop! table))
+ 
+ (define (delete! dbse)
+   (define tbls (tables dbse))
+   (define idxs (indexes dbse))
+   (for-all-tables dbse
+                   (lambda (table)
+                     (drop-table! dbse table)))
+   (tbl:drop! tbls)
+   (tbl:drop! idxs))
+ 
+ (define (print dbse)
+   (define tbls (tables dbse))
+   (define idxs (indexes dbse))
+   (display "DATABASE   METATABLE of TABLES")(newline)
+   (display "           ===================")(newline)
+   (tbl:print tbls)
+   (display "           METATABLE of INDEXES")(newline)
+   (display "           ===================")(newline)
+   (tbl:print idxs))
+ (define (print-table db tble)
+   (tbl:print tble)))

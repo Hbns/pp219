@@ -1,0 +1,98 @@
+#lang racket
+
+(require "gui_simulator/interface.rkt") ; Simulator interface
+;(require "hw_interface/interface.rkt") ; Hardware interface
+(require "boomtrack.rkt")
+(require (prefix-in q: "a-d/queue/linked.rkt"))
+
+(provide set-speed! set-sw-position! get-train-dblock stopat set-route)
+
+; Total number of trains define the length of qvector
+(define nr-of-trains 2)
+
+; Setup and sart the simulator 
+(setup-loop-and-switches)
+(start)
+
+; Add train.
+(add-loco 'T-1 'D1 'D2)
+(add-loco 'T-2 'D2 'D3)
+
+; vector to keep the queues of the trains.
+(define qvector (make-vector (+ nr-of-trains 1) (q:new))) 
+
+; The following tree functions are provided to ask for or set changes in the simulator.
+(define (set-speed! train speed)
+  (set-loco-speed! train speed))
+
+(define (set-sw-position! switch position)
+  (set-switch-position! switch position))
+
+(define (get-train-dblock train)
+  (get-loco-detection-block train))
+
+; A thread to detect train location and set the train speed to zero when train is on dblock
+(define (stopat dblock train)
+  (thread (lambda ()
+            (let loop ()
+              (if (eq? (get-train-dblock train) dblock)
+                  (set-speed! train 0)
+                  (loop))))))
+
+; This function is called from gui to get the train going to destination.
+; No real check for reservation, the idea is a queue with positions for each train.
+; where serve! and peek are used to compare the routes of diferent trains and prevent collision.
+(define (set-route to train)
+  (let ((route (route-please (get-train-dblock train) to))
+        (from (get-train-dblock train))
+        (q (vector-ref qvector (string->number (substring (symbol->string train) 2 3)))))
+    (display route)
+    (route->queue route q)
+    (reserve-release-locations q train) 
+    (if (check-direction-is-left from route)
+        (set-speed! train 150)
+        (set-speed! train -150))
+    (stopat to train)
+    route ))
+
+; A vector to keep track of reservations.
+(define dblock-reservations  (make-vector 10 0))
+
+; This function makes reservations in the dblock-reservations vector.
+(define (reserve-release-locations q train)
+  (if (not (q:empty? q))
+      (begin
+        (let ((location (q:serve! q)))
+          (location-inspector location)
+          (remove-reservation location train))
+        (reserve-release-locations q train))
+      (display " -q=empty- ")))
+      
+  
+; A conditional to evoke functions based on the location, ex: set-sw-position! if location is a switch.
+(define (location-inspector location)
+  (cond ((equal? (substring (symbol->string location) 0 1)"S")
+         (set-sw-position! (string->symbol (substring (symbol->string location) 0 2)) (string->number (substring (symbol->string location) 2 3))))
+        ((equal? (substring (symbol->string location) 0 1)"D")
+         (vector-set! dblock-reservations (string->number (substring (symbol->string location) 1 2)) 1))
+        ((equal? (substring (symbol->string location ) 0 1)"T")
+         (display "T-ntd"))))
+       
+; This funtion removes a dblock reservation after the train left the dblock
+(define (remove-reservation location train)
+  (thread (lambda ()
+            (let loop()
+              (if (not (equal? (get-train-dblock train) location))
+                  (vector-set! dblock-reservations (string->number (substring (symbol->string location) 1 2)) 0)
+                  (loop))))))
+
+; Turns the received list into a queue
+(define (route->queue route q)
+  (define location car)
+  (if (not (empty? route))
+      (begin
+        (q:enqueue! q (location route))
+        (route->queue (cdr route)q ))
+      q))
+
+

@@ -1,0 +1,1 @@
+("7.2" racket ("2224bc18405dff677051ad482d9c0bda9be8e37e" . "ee9126bf0a10d6ee38c5c1508701d00222c19b2d") #"/home/hans/Desktop/LPP2/graphtrack.rkt" (collects #"a-d" #"queue" #"linked.rkt") (collects #"errortrace" #"errortrace-key.rkt") (collects #"gui_simulator" #"interface.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

@@ -1,0 +1,152 @@
+#lang racket
+
+(require "a-d/graph/labeled/adjacency-matrix.rkt")
+(require (prefix-in ug: "a-d/graph/unweighted/adjacency-list.rkt"))
+
+(require "a-d/graph-traversing/bft-labeled.rkt")
+(require (prefix-in ugt: "a-d/graph-traversing/bft.rkt"))
+(require compatibility/mlist)
+(require racket/vector)
+
+(provide route-please check-direction-is-left)
+
+(define order 18)
+
+; boomtrack is the tree that represents the railway.
+(define boomtrack (new #f 17))
+(define boomtrack2 (ug:new #f order))
+
+; Nodes to vector indexes.
+(define A1 0)(define A2 1)(define A3 2)(define A4 3)(define A5 4)(define A6 5)
+(define A7 6)(define A8 7)(define A9 8)(define A10 9)(define A11 10)(define A12 11)
+(define A13 12)(define A14 13)(define A15 14)(define A16 15)(define A17 16)
+
+(add-edge! boomtrack A1 A2 'D1)
+(add-edge! boomtrack A2 A3 'D2)
+(add-edge! boomtrack A3 A4 'D3)
+(add-edge! boomtrack A4 A5 'D4)
+(add-edge! boomtrack A5 A6 'S11)
+(add-edge! boomtrack A5 A11 'S12)
+(add-edge! boomtrack A6 A7 'T1)
+(add-edge! boomtrack A7 A8 'D5)
+(add-edge! boomtrack A8 A9 'D6)
+(add-edge! boomtrack A9 A10 'S21)
+(add-edge! boomtrack A10 A14 'S22)
+(add-edge! boomtrack A11 A12 'T2)
+(add-edge! boomtrack A13 A14 'D7)
+(add-edge! boomtrack A12 A15 'S32)
+(add-edge! boomtrack A12 A13 'S31)
+(add-edge! boomtrack A15 A16 'D8)
+(add-edge! boomtrack A16 A17 'D9)
+
+; Nodes defines for boomtrack2 undirected graph
+(define T1 0)(define D1 1)(define D2 2)(define D3 3)(define D4 4)(define S12 5)(define T3 6)(define S32 7)
+(define D8 8)(define D9 9)(define S31 10)(define D7 11)(define S22 12)(define S11 13)(define T2 14)(define D5 15)
+(define D6 16)(define S21 17)
+
+; Vector for node number to node label translation.
+(define nodenames (make-vector order 0))
+
+; Tracks
+(vector-set! nodenames 0 "T1")
+(vector-set! nodenames 14 "T2")
+(vector-set! nodenames 6 "T3")
+; Dblocks
+(vector-set! nodenames 1 "D1")
+(vector-set! nodenames 2 "D2")
+(vector-set! nodenames 3 "D3")
+(vector-set! nodenames 4 "D4")
+(vector-set! nodenames 15 "D5")
+(vector-set! nodenames 16 "D6")
+(vector-set! nodenames 11 "D7")
+(vector-set! nodenames 8 "D8")
+(vector-set! nodenames 9 "D9")
+; Switches
+(vector-set! nodenames 13 "S11")
+(vector-set! nodenames 5 "S12")
+(vector-set! nodenames 17 "S21")
+(vector-set! nodenames 12 "S22")
+(vector-set! nodenames 10 "S31")
+(vector-set! nodenames 7 "S32")
+
+; Building the actual tree
+(ug:add-edge! boomtrack2 T1 D1)
+(ug:add-edge! boomtrack2 T1 S21)
+(ug:add-edge! boomtrack2 T1 S22)
+(ug:add-edge! boomtrack2 T3 S31)
+(ug:add-edge! boomtrack2 T3 S32)
+(ug:add-edge! boomtrack2 T2 D5)
+(ug:add-edge! boomtrack2 D1 D2)
+(ug:add-edge! boomtrack2 D2 D3)
+(ug:add-edge! boomtrack2 D3 D4)
+(ug:add-edge! boomtrack2 D4 S11)
+(ug:add-edge! boomtrack2 D4 S12)
+(ug:add-edge! boomtrack2 D5 D6)
+(ug:add-edge! boomtrack2 D6 S21)
+(ug:add-edge! boomtrack2 D7 S22)
+(ug:add-edge! boomtrack2 D8 D9)
+(ug:add-edge! boomtrack2 S11 T2)
+(ug:add-edge! boomtrack2 S12 T3)
+(ug:add-edge! boomtrack2 S31 D7)
+(ug:add-edge! boomtrack2 S32 D8)
+
+(define (find-node-number nodename)
+  (vector-member nodename nodenames))
+
+; A hash to find the nodes corresponding with detection blocks.
+(define hashnodes (hash "D1" '(0 1) "D2" '(1 2) "D3" '(2 3) "D4" '(4 5) "D5" '(7 6)
+                        "D6" '(8 9) "D7" '(12 13) "D8" '(14 15) "D9" '(16 17)))
+
+; A hash to decide what direction the train has to start driving.
+(define hashdirection (hash "D1" '(D2 T) "D2" '(D3 D1) "D3" '(D4 D2) "D4" '((S11 S12) D3) "D5" '((T T) D6)
+                            "D6" '(D5 S22) "D7" '(S31 S22) "D8" '(S32 D9) "D9" '(D8 end)))
+
+
+         
+; Function to determainate what direction the train should start it's path.
+(define (check-direction-is-left location next-location)
+  (let ((location-to-check-nr  (find-node-number location))
+        (next-location-nr (find-node-number next-location)))
+    (if (< location-to-check-nr next-location-nr)
+        #t
+        #f
+          )))
+
+; This functions returns a list with the labels corresponding to the calculated route. 
+(define (route-please from to)
+  (route->labels (shortest-path2 boomtrack2 (find-node-number from) (find-node-number to))'()))
+                               
+
+; This function calculates the path to destination, copy from a-d with small adaptions.
+(define (shortest-path g from to)
+  (define paths (make-vector (order g) '()))
+  (vector-set! paths from (list from))
+  (bft g 
+       root-nop
+       (lambda (label node) ;node discovered
+         (not (eq? node to)))
+       (lambda (from to label);edge discovered
+         (vector-set! paths to (cons to (vector-ref paths from))))
+       edge-nop
+       (list->mlist (list from)))
+  (vector-ref paths to))
+
+(define (shortest-path2 g from to)
+  (define paths (make-vector (ug:order g) '()))
+  (vector-set! paths from (list from))
+  (ugt:bft g 
+           ugt:root-nop
+           (lambda (node) ;node discovered
+             (not (eq? node to)))
+           (lambda (from to);edge discovered
+             (vector-set! paths to (cons to (vector-ref paths from))))
+           ugt:edge-nop
+           (list->mlist (list from)))
+  (vector-ref paths to))
+
+ 
+; Converts nodenumbers to nodenames
+(define (route->labels list res)
+  (if (empty? list)
+      res
+      (route->labels (cdr list) (cons (vector-ref nodenames (car list))res))))

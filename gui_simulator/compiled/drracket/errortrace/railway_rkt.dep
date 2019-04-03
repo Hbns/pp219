@@ -1,0 +1,1 @@
+("7.2" racket ("fa30076eb36affccab07d11b82a4f98f2c3091ca" . "e5346902fa3e6ebdf92b6ce8e30dbd6f3279a9b0") #"/home/hans/Desktop/LPP2/gui_simulator/tracks.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"math" #"bigfloat.rkt") (collects #"racket" #"class.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
