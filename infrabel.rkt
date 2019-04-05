@@ -5,10 +5,10 @@
 (require "graphtrack.rkt")
 (require (prefix-in q: "a-d/queue/linked.rkt"))
 
-(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train update-trains-locations)
+(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-locations)
 
 ; Total number of trains define the length of qvector
-(define nr-of-trains 2)
+(define nr-of-trains 1)
 
 ; Setup and sart the simulator 
 (setup-loop-and-switches)
@@ -17,28 +17,28 @@
 (define trains-locations (make-vector (+ nr-of-trains 1)(make-vector 2)))
 
 ; Add train .
-(define (add-train train location direction)
-  (vector-set! (vector-ref trains-locations train) 0 direction)
-  (vector-set! (vector-ref trains-locations train) 1 location)
-  (add-loco (string->symbol (string-append "T-"(number->string train))) location direction))
+(define (add-train train previous-pos position)
+  (vector-set! (vector-ref trains-locations train) 0 previous-pos)
+ ;  (vector-set! (vector-ref trains-locations train) 1 position)
+  (add-loco (string->symbol (string-append "T-"(number->string train))) previous-pos position))
 
-(define (update-trains-locations)
-  (define (do-all-trains train)
-    (if (<= train nr-of-trains)
-        (begin
-          (let ((previous-location (vector-ref (vector-ref trains-locations train) 0 ))
-                (actual-location (get-train-dblock (string->symbol (string-append "T-"(number->string train))))))
-            (if (eq? previous-location actual-location)
-                (begin
-                  (display "no-updt") (do-all-trains (+ 1 train)))
-                (begin
-                  (vector-set! (vector-ref trains-locations train) 0 previous-location)
-                  (vector-set! (vector-ref trains-locations train) 1 actual-location)
-                  (display train)
-                  (do-all-trains (+ 1 train))
-                  ))))
-        (display "done")))
-  (do-all-trains 1))
+;(define (update-trains-locations)
+;  (define (do-all-trains train)
+;    (if (<= train nr-of-trains)
+;        (begin
+;          (let ((previous-location (vector-ref (vector-ref trains-locations train) 0 ))
+;                (actual-location (get-train-dblock (string->symbol (string-append "T-"(number->string train))))))
+;            (if (eq? previous-location actual-location)
+;                (begin
+;                  (display "no-updt") (do-all-trains (+ 1 train)))
+;                (begin
+;                  (vector-set! (vector-ref trains-locations train) 0 previous-location)
+;                  (vector-set! (vector-ref trains-locations train) 1 actual-location)
+;                  (display train)
+;                  (do-all-trains (+ 1 train))
+;                  ))))
+;        (display "done")))
+;  (do-all-trains 1))
 
               
     

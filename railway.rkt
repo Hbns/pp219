@@ -131,14 +131,14 @@
 
   ; Function to make and add trains to the trains vector.
   ; This is a vector containing vectors, one per train.
-  (define (make-train id position direction speed)
+  (define (make-train id position previous-pos speed)
     (set! number-of-trains (+ number-of-trains 1))
     (define train (make-vector 4 0))
     (vector-set! train 0 speed)
     (vector-set! train 1 position)
-    (vector-set! train 2 direction)
+    (vector-set! train 2 previous-pos)
     (vector-set! train-vector id train)
-    (add-train id direction position))
+    (add-train id previous-pos position))
 
   (define (set-train-speed id speed)
     (vector-set! (vector-ref train-vector id ) 0 speed))
@@ -200,7 +200,7 @@
 ((tracks 'make-track) 2 'S-2 'D-1)
 ((tracks 'make-track) 3 'S-1.2 'S-3)
 
-((trains 'make-train) 1 'D1 'D2 80) 
+((trains 'make-train) 1 'D1 'T2 80) 
 ;((trains 'make-train) 2 'D3 'D2 80)
 
 ; Initiation of the gui

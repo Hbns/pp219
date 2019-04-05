@@ -78,7 +78,7 @@
        [init-value 0]
        [callback (lambda (slider event)(let ((id (string->symbol (send slider get-label)))
                                              (value (send slider get-value)))
-                                         (set-speed! id (- value))
+                                         (set-speed! id value)
                                          ))]
        ))
  
