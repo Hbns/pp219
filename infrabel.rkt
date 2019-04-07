@@ -5,7 +5,7 @@
 (require "graphtrack.rkt")
 (require (prefix-in q: "a-d/queue/linked.rkt"))
 
-(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-locations)
+(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-positions)
 
 ; Total number of trains define the length of qvector
 (define nr-of-trains 1)
@@ -14,12 +14,22 @@
 (setup-loop-and-switches)
 (start)
 ; Train location and previous location.
-(define trains-locations (make-vector (+ nr-of-trains 1)(make-vector 2)))
+(define trains-positions (make-vector (+ nr-of-trains 1)0))
+
+(define (fill-trains-positions)
+  (define (fill count)
+    (if (<= count nr-of-trains)
+        (begin (vector-set! trains-positions count (make-vector 2 0)) (fill (+ 1 count)))
+        (display "filled")))
+  (fill 0))
+
+(fill-trains-positions)
+        
 
 ; Add train .
 (define (add-train train previous-pos position)
-  (vector-set! (vector-ref trains-locations train) 0 previous-pos)
- ;  (vector-set! (vector-ref trains-locations train) 1 position)
+  (vector-set! (vector-ref trains-positions train) 0 previous-pos)
+  (vector-set! (vector-ref trains-positions train) 1 position)
   (add-loco (string->symbol (string-append "T-"(number->string train))) previous-pos position))
 
 ;(define (update-trains-locations)
