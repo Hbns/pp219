@@ -24,7 +24,7 @@
 (new choice% [parent desti][label "Location: "][choices (list "D1" "D2" "D3" "D4" "D5" "D6" "D7" "D8" "D9")]
      [callback (lambda (choice event)(set! dest (+ 1 (send choice get-selection))))])
 (new button% [parent desti][label "Send"]
-     [callback (lambda (button event)(set-route (string->symbol(string-append "D"(number->string dest)))
+     [callback (lambda (button event)(set-route (string-append "D"(number->string dest))
                                                 (string->symbol(string-append "T-"(number->string train)))))])
 
 ; The size of vectors 

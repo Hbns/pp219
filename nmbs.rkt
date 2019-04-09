@@ -2,7 +2,9 @@
 
 (require "railway.rkt")
 (require "infrabel.rkt")
+(require "gui.rkt")
 
+(provide relay-route-request)
 
 ; Definition of start values
 (define last-location 'D1)
@@ -21,9 +23,11 @@
        'Unkown-Location-or-No-Update-Required)))
 
 ; A thread to constantly update the detection blocks for train location.
-(define update (thread (lambda ()
-                         (let loop ()
-                           (update-location 'T-1)
-                            (loop)))))
+;(define update (thread (lambda ()
+;                         (let loop ()
+;                           (update-location 'T-1)
+;                            (loop)))))
+;
 
-
+(define (relay-route-request train to)
+  (set-route train to))

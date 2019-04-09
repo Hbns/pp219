@@ -11,7 +11,8 @@
 (define nr-of-trains 2)
 
 ; Setup and sart the simulator 
-(setup-loop-and-switches)
+;(setup-loop-and-switches)
+(setup-hardware)
 (start)
 ; Train location and previous location.
 (define trains-positions (make-vector (+ nr-of-trains 1)0))
@@ -88,7 +89,11 @@
 ; No real check for reservation, the idea is a queue with positions for each train.
 ; where serve! and peek are used to compare the routes of diferent trains and prevent collision.
 (define (set-route to train)
-  (let ((route (route-please (symbol->string (get-train-dblock train)) to))
+  (route-please (get-train-dblock (string->symbol train)) to))
+        
+
+(define (set-route2 to train)
+  (let ((route (route-please (symbol->string (get-train-dblock (string->symbol train))) (string->symbol to)))
         (from (symbol->string(get-train-dblock train)))
         (q (vector-ref qvector (string->number (substring (symbol->string train) 2 3)))))
     (display route)

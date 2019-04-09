@@ -49,16 +49,16 @@
   (define db-vector(make-vector (+ NR-OF-DBLOCKS 1) 0))
 
   ; Function to add detection blocks to the detection blocks vector.
-  (define (make-detection-block id state)
+  (define (make-detection-block id name)
     (set! number-of-dblocks (+ number-of-dblocks 1))
-    (vector-set! db-vector id state))
+    (vector-set! db-vector id name))
 
   ; This function is called to build the gui by looping over the detection bock-vector.
   (define (build-gui)
     (define (loop id) 
       (if (<= id number-of-dblocks)
           (begin
-            (make-dblock-gui id)
+            (make-dblock-gui id (vector-ref db-vector id))
             (loop (+ 1 id)))
           (display 'No-dblocks?)))
     (loop 1))
@@ -124,25 +124,46 @@
 
 ; Creation of all parts (loop-and-switches)
 
-; switch id's from big to small
+; switch id's from big to small! 
 ((switches 'make-switch) 28 0)
+((switches 'make-switch) 27 0)
+((switches 'make-switch) 26 0)
+((switches 'make-switch) 25 0)
+((switches 'make-switch) 24 0)
+((switches 'make-switch) 23 0)
+((switches 'make-switch) 20 0)
+((switches 'make-switch) 12 0)
+((switches 'make-switch) 11 0)
+((switches 'make-switch) 10 0)
+((switches 'make-switch) 9 0)
+((switches 'make-switch) 8 0)
 ((switches 'make-switch) 7 0)
+((switches 'make-switch) 6 0)
+((switches 'make-switch) 5 0)
+((switches 'make-switch) 4 0)
 ((switches 'make-switch) 3 0)
 ((switches 'make-switch) 2 0)
 ((switches 'make-switch) 1 0)
 
-((detection-blocks ' make-detection-block) 1 'safe)
-((detection-blocks ' make-detection-block) 2 'safe)
-((detection-blocks ' make-detection-block) 3 'safe)
-((detection-blocks ' make-detection-block) 4 'safe)
-((detection-blocks ' make-detection-block) 5 'safe)
-((detection-blocks ' make-detection-block) 6 'safe)
-((detection-blocks ' make-detection-block) 7 'safe)
-((detection-blocks ' make-detection-block) 8 'safe)
-((detection-blocks ' make-detection-block) 9 'safe)
+((detection-blocks ' make-detection-block) 1 "1-1")
+((detection-blocks ' make-detection-block) 2 "1-2")
+((detection-blocks ' make-detection-block) 3 "1-3")
+((detection-blocks ' make-detection-block) 4 "1-4")
+((detection-blocks ' make-detection-block) 5 "1-5")
+((detection-blocks ' make-detection-block) 6 "1-6")
+((detection-blocks ' make-detection-block) 7 "1-7")
+((detection-blocks ' make-detection-block) 8 "1-8")
+((detection-blocks ' make-detection-block) 9 "2-1")
+((detection-blocks ' make-detection-block) 10 "2-2")
+((detection-blocks ' make-detection-block) 11 "2-3")
+((detection-blocks ' make-detection-block) 12 "2-4")
+((detection-blocks ' make-detection-block) 13 "2-5")
+((detection-blocks ' make-detection-block) 14 "2-6")
+((detection-blocks ' make-detection-block) 15 "2-7")
+((detection-blocks ' make-detection-block) 16 "2-8")
 
-((trains 'make-train) 1 'T2 'D1) 
-((trains 'make-train) 2 'D3 'D4)
+((trains 'make-train) 1 '1-5 '1-4) 
+((trains 'make-train) 2 '1-6 '1-7)
 
 ; Initiation of the gui
 ((detection-blocks 'build-gui))
