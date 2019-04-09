@@ -1,7 +1,7 @@
 #lang racket
 
 (require racket/gui)
-(require "infrabel.rkt")
+(require "communication.rkt")
 
 (provide make-switch-gui make-dblock-gui make-train-gui set-dblock-free! set-dblock-occp! show-train-location)
 
@@ -27,7 +27,7 @@
 (new choice% [parent desti][label "Location: "][choices list-of-dblocks]
      [callback (lambda (choice event)(set! dest (send choice get-string-selection)))])
 (new button% [parent desti][label "Send"]
-     [callback (lambda (button event)(set-route dest train))]) ;route to
+     [callback (lambda (button event)(set-route dest train))])
                                                
 ; The size of vectors 
 (define gui-dblocks-size 17)

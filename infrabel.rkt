@@ -89,7 +89,7 @@
 ; No real check for reservation, the idea is a queue with positions for each train.
 ; where serve! and peek are used to compare the routes of diferent trains and prevent collision.
 (define (set-route to train)
-  (route-please (get-train-dblock (string->symbol train)) to))
+  (display (route-please (symbol->string (get-train-dblock (string->symbol train))) to)))
         
 
 (define (set-route2 to train)

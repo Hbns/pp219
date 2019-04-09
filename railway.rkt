@@ -1,7 +1,7 @@
 #lang racket
 
 (require "gui.rkt")
-(require "infrabel.rkt")
+(require "communication.rkt")
 
 (provide set-gui-train-location!)
 

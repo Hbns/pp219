@@ -1,10 +1,10 @@
 #lang racket
 
 (require "railway.rkt")
-(require "infrabel.rkt")
+(require "communication.rkt")
 (require "gui.rkt")
+;(require "graphtrack.rkt")
 
-(provide relay-route-request)
 
 ; Definition of start values
 (define last-location 'D1)
@@ -28,6 +28,3 @@
 ;                           (update-location 'T-1)
 ;                            (loop)))))
 ;
-
-(define (relay-route-request train to)
-  (set-route train to))

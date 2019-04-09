@@ -10,7 +10,6 @@
 
 (provide route-please check-direction-is-left)
 (define order 61)
-(define order2 18)
 
 ; graphtrack is the tree that represents the railway.
 (define graphtrack (ug:new #f order))
@@ -26,9 +25,16 @@
 (define S032 50)(define S081 51)(define S042 52)(define 2-7 53)(define 2-2 54)(define S082 55)(define 2-5 56)
 (define S012 57)(define S031 58)(define S242 59)(define S251 60)
 
-; Vector for node number to node label translation.
+; Vector and hash for nodenr->nodelabel and nodelabel->nodenr translation.
 (define nodenames (make-vector order 0))
-(define nodehash (hash "1-5" 0 "1-4" 1 "S262" 2))
+(define nodehash (hash "1-1" 22 "1-2" 10 "1-3" 4 "1-4" 1 "1-5" 0 "1-6" 32 "1-7" 31 "1-8" 36
+                       "2-1" 46 "2-2" 54 "2-3" 18 "2-4" 7 "2-5" 56 "2-6" 45 "2-7" 53 "2-8" 25
+                       "S011" 47 "S012" 57 "S021" 42 "S031" 58 "S032" 50 "S041" 44 "S042" 52
+                       "S051" 33 "S052" 40 "S061" 34 "S062" 41 "S071" 39 "S072" 43 "S081" 51
+                       "S082" 55 "S091" 13 "S092" 11 "S101" 23 "S102" 29 "S111" 14 "S112" 24
+                       "S121" 15 "S122" 17 "S161" 28 "S162" 26 "S201" 8 "S202" 35 "S231" 6
+                       "S232" 16 "S241" 12 "S242" 59 "S251" 60 "S252" 25 "S261" 19 "S262" 2
+                       "S271" 9 "S272" 3 "S281" 30 "S282" 21))
 
 ; Dblocks
 (vector-set! nodenames 22 '1-1)
@@ -47,7 +53,7 @@
 (vector-set! nodenames 45 '2-6)
 (vector-set! nodenames 53 '2-7)
 (vector-set! nodenames 25 '2-8)
-
+ 
 ; Switches
 (vector-set! nodenames 47 "S011")
 (vector-set! nodenames 57 "S012")
@@ -125,7 +131,7 @@
 
 ; This functions returns a list with the labels corresponding to the calculated route. 
 (define (route-please from to)
-  (route->labels (shortest-path graphtrack (find-node-number from) (find-node-number to))'()))
+  (route->labels (shortest-path graphtrack (hash-ref nodehash from) (hash-ref nodehash to))'()))
                                
 ; This function calculates the path to destination, copy from a-d with small adaptions.
 (define (shortest-path g from to)
