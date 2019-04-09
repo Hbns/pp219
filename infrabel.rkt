@@ -8,7 +8,7 @@
 (provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-positions)
 
 ; Total number of trains define the length of qvector
-(define nr-of-trains 1)
+(define nr-of-trains 2)
 
 ; Setup and sart the simulator 
 (setup-loop-and-switches)
