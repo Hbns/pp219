@@ -9,10 +9,11 @@
 (require racket/vector)
 
 (provide route-please check-direction-is-left)
-(define order 61)
 
-; graphtrack is the tree that represents the railway.
-(define graphtrack (ug:new #f order))
+(define ORDER 102)
+
+; railwaygraph is the tree that represents the railway.
+(define railwaygraph (ug:new #f ORDER))
 
 ; Nodes 
 (define 1-5 0)(define 1-4 1)(define S262 2)(define S272 3)(define 1-3 4)(define T2 5)(define S231 6)(define 2-4 7)
@@ -26,112 +27,79 @@
 (define S012 57)(define S031 58)(define S242 59)(define S251 60)
 
 ; Vector and hash for nodenr->nodelabel and nodelabel->nodenr translation.
-(define nodenames (make-vector order 0))
-(define nodehash (hash "1-1" 22 "1-2" 10 "1-3" 4 "1-4" 1 "1-5" 0 "1-6" 32 "1-7" 31 "1-8" 36
-                       "2-1" 46 "2-2" 54 "2-3" 18 "2-4" 7 "2-5" 56 "2-6" 45 "2-7" 53 "2-8" 25
-                       "S011" 47 "S012" 57 "S021" 42 "S031" 58 "S032" 50 "S041" 44 "S042" 52
-                       "S051" 33 "S052" 40 "S061" 34 "S062" 41 "S071" 39 "S072" 43 "S081" 51
-                       "S082" 55 "S091" 13 "S092" 11 "S101" 23 "S102" 29 "S111" 14 "S112" 24
-                       "S121" 15 "S122" 17 "S161" 28 "S162" 26 "S201" 8 "S202" 35 "S231" 6
-                       "S232" 16 "S241" 12 "S242" 59 "S251" 60 "S252" 25 "S261" 19 "S262" 2
-                       "S271" 9 "S272" 3 "S281" 30 "S282" 21))
+
+(define nodelabels (make-vector ORDER 0))
+  
+(define nodehash (hash "1-1" 0 "1-2" 22 "1-3" 31 "1-4" 17 "1-5" 18 "1-6" 8 "1-7" 7 "1-8" 67
+                       "2-1" 34 "2-2" 55 "2-3" 11 "2-4" 5 "2-5" 51 "2-6" 46 "2-7" 40 "2-8"))
 
 ; Dblocks
-(vector-set! nodenames 22 '1-1)
-(vector-set! nodenames 10 '1-2)
-(vector-set! nodenames 4 '1-3)
-(vector-set! nodenames 1 '1-4)
-(vector-set! nodenames 0 '1-5)
-(vector-set! nodenames 32 '1-6)
-(vector-set! nodenames 31 '1-7)
-(vector-set! nodenames 36 '1-8)
-(vector-set! nodenames 46 '2-1)
-(vector-set! nodenames 54 '2-2)
-(vector-set! nodenames 18 '2-3)
-(vector-set! nodenames 7 '2-4)
-(vector-set! nodenames 56 '2-5)
-(vector-set! nodenames 45 '2-6)
-(vector-set! nodenames 53 '2-7)
-(vector-set! nodenames 25 '2-8)
+(vector-set! nodelabels 0 "1-1")(vector-set! nodelabels 22 "1-2")(vector-set! nodelabels 31 "1-3")
+(vector-set! nodelabels 17 "1-4")(vector-set! nodelabels 18 "1-5")(vector-set! nodelabels 8 "1-6")
+(vector-set! nodelabels 7 "1-7")(vector-set! nodelabels 67 "1-8")(vector-set! nodelabels 34 "2-1")
+(vector-set! nodelabels 55 "2-2")(vector-set! nodelabels 11 "2-3")(vector-set! nodelabels 5 "2-4")
+(vector-set! nodelabels 51 "2-5")(vector-set! nodelabels 46 "2-6")(vector-set! nodelabels 40 "2-7")
  
 ; Switches
-(vector-set! nodenames 47 "S011")
-(vector-set! nodenames 57 "S012")
-(vector-set! nodenames 42 "S021")
-(vector-set! nodenames 49 "S022")
-(vector-set! nodenames 58 "S031")
-(vector-set! nodenames 50 "S032")
-(vector-set! nodenames 44 "S041")
-(vector-set! nodenames 52 "S042")
-(vector-set! nodenames 33 "S051")
-(vector-set! nodenames 40 "S052")
-(vector-set! nodenames 34 "S061")
-(vector-set! nodenames 41 "S062")
-(vector-set! nodenames 39 "S071")
-(vector-set! nodenames 43 "S072")
-(vector-set! nodenames 51 "S081")
-(vector-set! nodenames 55 "S082")
-(vector-set! nodenames 13 "S091")
-(vector-set! nodenames 11 "S092")
-(vector-set! nodenames 23 "S101")
-(vector-set! nodenames 29 "S102")
-(vector-set! nodenames 14 "S111")
-(vector-set! nodenames 24 "S112")
-(vector-set! nodenames 15 "S121")
-(vector-set! nodenames 17 "S122")
-(vector-set! nodenames 28 "S161")
-(vector-set! nodenames 26 "S162")
-(vector-set! nodenames 8 "S201")
-(vector-set! nodenames 35 "S202")
-(vector-set! nodenames 6 "S231")
-(vector-set! nodenames 16 "S232")
-(vector-set! nodenames 12 "S241")
-(vector-set! nodenames 59 "S242")
-(vector-set! nodenames 60 "S251")
-(vector-set! nodenames 25 "S252")
-(vector-set! nodenames 19 "S261")
-(vector-set! nodenames 2 "S262")
-(vector-set! nodenames 9 "S271")
-(vector-set! nodenames 3 "S272")
-(vector-set! nodenames 30 "S281")
-(vector-set! nodenames 21 "S282")
+(vector-set! nodelabels 35 "S011")(vector-set! nodelabels 41 "S011")(vector-set! nodelabels 47 "S011")(vector-set! nodelabels 52 "S011")
+(vector-set! nodelabels 56 "S011")(vector-set! nodelabels 61 "S011")(vector-set! nodelabels 69 "S012")(vector-set! nodelabels 76 "S012")
+(vector-set! nodelabels 83 "S012")(vector-set! nodelabels 89 "S012")(vector-set! nodelabels 57 "S021")(vector-set! nodelabels 62 "S021")
+(vector-set! nodelabels 36 "S022")(vector-set! nodelabels 42 "S022")(vector-set! nodelabels 48 "S022")(vector-set! nodelabels 53 "S022")
+(vector-set! nodelabels 70 "S022")(vector-set! nodelabels 77 "S022")(vector-set! nodelabels 84 "S022")(vector-set! nodelabels 90 "S022")
+(vector-set! nodelabels 54 "S031")(vector-set! nodelabels 91 "S031")(vector-set! nodelabels 37 "S032")(vector-set! nodelabels 43 "S032")
+(vector-set! nodelabels 49 "S032")(vector-set! nodelabels 71 "S032")(vector-set! nodelabels 78 "S032")(vector-set! nodelabels 85 "S032")
+(vector-set! nodelabels 45 "S041")(vector-set! nodelabels 80 "S041")(vector-set! nodelabels 39 "S042")(vector-set! nodelabels 73 "S042")
+(vector-set! nodelabels 9 "S051")(vector-set! nodelabels 59 "S052")(vector-set! nodelabels 64 "S052")(vector-set! nodelabels 95 "S052")
+(vector-set! nodelabels 99 "S052")(vector-set! nodelabels 65 "S061")(vector-set! nodelabels 100 "S061")(vector-set! nodelabels 60 "S062")
+(vector-set! nodelabels 96 "S062")(vector-set! nodelabels 10 "S062")(vector-set! nodelabels 94 "S071")(vector-set! nodelabels 98 "S071")
+(vector-set! nodelabels 58 "S072")(vector-set! nodelabels 63 "S072")(vector-set! nodelabels 38 "S081")(vector-set! nodelabels 44 "S081")
+(vector-set! nodelabels 72 "S081")(vector-set! nodelabels 79 "S081")(vector-set! nodelabels 50 "S082")(vector-set! nodelabels 86 "S082")
+(vector-set! nodelabels 23 "S091")(vector-set! nodelabels 26 "S092")(vector-set! nodelabels 1 "S101")(vector-set! nodelabels 12 "S101")
+(vector-set! nodelabels 29 "S102")(vector-set! nodelabels 24 "S111")(vector-set! nodelabels 2 "S112")(vector-set! nodelabels 13 "S112")
+(vector-set! nodelabels 3 "S121")(vector-set! nodelabels 14 "S122")(vector-set! nodelabels 25 "S122")(vector-set! nodelabels 28 "S161")
+(vector-set! nodelabels 26 "S162")(vector-set! nodelabels 19 "S201")(vector-set! nodelabels 66 "S202")(vector-set! nodelabels 6 "S231")
+(vector-set! nodelabels 16 "S232")(vector-set! nodelabels 27 "S241")(vector-set! nodelabels 32 "S242")(vector-set! nodelabels 68 "S251")
+(vector-set! nodelabels 75 "S251")(vector-set! nodelabels 82 "S251")(vector-set! nodelabels 88 "S251")(vector-set! nodelabels 93 "S252")
+(vector-set! nodelabels 97 "S252")(vector-set! nodelabels 16 "S261")(vector-set! nodelabels 20 "S262")(vector-set! nodelabels 29 "S262")
+(vector-set! nodelabels 21 "S271")(vector-set! nodelabels 30 "S272")(vector-set! nodelabels 6 "S281")(vector-set! nodelabels 15 "S282")
 
-; Building the actual tree
-(ug:add-edge! graphtrack 1-5 1-4)(ug:add-edge! graphtrack 1-4 S262)(ug:add-edge! graphtrack 1-4 S261)(ug:add-edge! graphtrack S262 S272)
-(ug:add-edge! graphtrack S262 S271)(ug:add-edge! graphtrack S272 1-3)(ug:add-edge! graphtrack 1-3 T2)(ug:add-edge! graphtrack T2 S242)
-(ug:add-edge! graphtrack S242 S231)(ug:add-edge! graphtrack S231 2-4)(ug:add-edge! graphtrack S231 S241)(ug:add-edge! graphtrack 2-4 S201)
-(ug:add-edge! graphtrack 2-4 S202)(ug:add-edge! graphtrack 2-4 S232)(ug:add-edge! graphtrack S201 1-5)(ug:add-edge! graphtrack S271 1-2)
-(ug:add-edge! graphtrack 1-2 S092)(ug:add-edge! graphtrack 1-2 S091)(ug:add-edge! graphtrack S092 S241)(ug:add-edge! graphtrack S091 S111)
-(ug:add-edge! graphtrack S111 S121)(ug:add-edge! graphtrack S111 S122)(ug:add-edge! graphtrack S122 2-3)(ug:add-edge! graphtrack S122 S112)
-(ug:add-edge! graphtrack 2-3 S062)(ug:add-edge! graphtrack S261 T1)(ug:add-edge! graphtrack T1 S282)(ug:add-edge! graphtrack S282 1-1)
-(ug:add-edge! graphtrack 1-1 S281)(ug:add-edge! graphtrack 1-1 S101)(ug:add-edge! graphtrack S101 S112)(ug:add-edge! graphtrack S112 S102)
-(ug:add-edge! graphtrack 2-8 S162)(ug:add-edge! graphtrack S162 T7)(ug:add-edge! graphtrack T7 S161)(ug:add-edge! graphtrack S161 S102)
-(ug:add-edge! graphtrack S281 1-7)(ug:add-edge! graphtrack 1-7 1-6)(ug:add-edge! graphtrack 1-6 S051)(ug:add-edge! graphtrack S051 S061)
-(ug:add-edge! graphtrack S051 S062)(ug:add-edge! graphtrack S061 S202)(ug:add-edge! graphtrack 1-8 S252)(ug:add-edge! graphtrack 1-8 S251)
-(ug:add-edge! graphtrack S252 T5)(ug:add-edge! graphtrack T5 S071)(ug:add-edge! graphtrack S071 S052)(ug:add-edge! graphtrack S052 S062)
-(ug:add-edge! graphtrack S052 S072)(ug:add-edge! graphtrack S072 S021)(ug:add-edge! graphtrack S021 T6)(ug:add-edge! graphtrack S251 S012)
-(ug:add-edge! graphtrack S012 T6)(ug:add-edge! graphtrack 2-1 S011)(ug:add-edge! graphtrack S011 T6)(ug:add-edge! graphtrack T6 S022)
-(ug:add-edge! graphtrack S022 S031)(ug:add-edge! graphtrack S031 2-2)(ug:add-edge! graphtrack S022 S032)(ug:add-edge! graphtrack S032 S081)
-(ug:add-edge! graphtrack S032 S082)(ug:add-edge! graphtrack S082 2-5)(ug:add-edge! graphtrack S081 S041)(ug:add-edge! graphtrack S081 S042)
-(ug:add-edge! graphtrack S041 2-6)(ug:add-edge! graphtrack S042 2-7)
-
-
-(define (find-node-number nodename)
-  (vector-member nodename nodenames))
-
+; Building railwaygraph.
+(ug:add-edge! railwaygraph 0 1)(ug:add-edge! railwaygraph 1 2)(ug:add-edge! railwaygraph 2 3)(ug:add-edge! railwaygraph 3 4)(ug:add-edge! railwaygraph 4 5)
+(ug:add-edge! railwaygraph 0 6)(ug:add-edge! railwaygraph 6 7)(ug:add-edge! railwaygraph 7 8)(ug:add-edge! railwaygraph 8 9)(ug:add-edge! railwaygraph 9 10)
+(ug:add-edge! railwaygraph 10 11)(ug:add-edge! railwaygraph 0 12)(ug:add-edge! railwaygraph 12 13)(ug:add-edge! railwaygraph 13 14)(ug:add-edge! railwaygraph 14 11)
+(ug:add-edge! railwaygraph 0 15)(ug:add-edge! railwaygraph 15 16)(ug:add-edge! railwaygraph 16 17)(ug:add-edge! railwaygraph 17 20)(ug:add-edge! railwaygraph 17 18)
+(ug:add-edge! railwaygraph 18 19)(ug:add-edge! railwaygraph 19 5)(ug:add-edge! railwaygraph 20 21)(ug:add-edge! railwaygraph 21 22)(ug:add-edge! railwaygraph 22 23)
+(ug:add-edge! railwaygraph 23 24)(ug:add-edge! railwaygraph 24 25)(ug:add-edge! railwaygraph 25 11)(ug:add-edge! railwaygraph 22 26)(ug:add-edge! railwaygraph 26 27)
+(ug:add-edge! railwaygraph 27 28)(ug:add-edge! railwaygraph 28 5)(ug:add-edge! railwaygraph 17 29)(ug:add-edge! railwaygraph 29 30)(ug:add-edge! railwaygraph 30 31)
+(ug:add-edge! railwaygraph 31 32)(ug:add-edge! railwaygraph 32 33)(ug:add-edge! railwaygraph 33 5)(ug:add-edge! railwaygraph 34 35)(ug:add-edge! railwaygraph 35 36)
+(ug:add-edge! railwaygraph 36 37)(ug:add-edge! railwaygraph 37 38)(ug:add-edge! railwaygraph 38 39)(ug:add-edge! railwaygraph 39 40)(ug:add-edge! railwaygraph 34 41)
+(ug:add-edge! railwaygraph 41 42)(ug:add-edge! railwaygraph 42 43)(ug:add-edge! railwaygraph 43 44)(ug:add-edge! railwaygraph 44 45)(ug:add-edge! railwaygraph 45 46)
+(ug:add-edge! railwaygraph 34 47)(ug:add-edge! railwaygraph 47 48)(ug:add-edge! railwaygraph 48 49)(ug:add-edge! railwaygraph 49 50)(ug:add-edge! railwaygraph 50 51)
+(ug:add-edge! railwaygraph 34 52)(ug:add-edge! railwaygraph 52 53)(ug:add-edge! railwaygraph 53 54)(ug:add-edge! railwaygraph 54 55)(ug:add-edge! railwaygraph 34 56)
+(ug:add-edge! railwaygraph 56 57)(ug:add-edge! railwaygraph 57 58)(ug:add-edge! railwaygraph 58 59)(ug:add-edge! railwaygraph 59 60)(ug:add-edge! railwaygraph 60 11)
+(ug:add-edge! railwaygraph 34 61)(ug:add-edge! railwaygraph 61 62)(ug:add-edge! railwaygraph 62 63)(ug:add-edge! railwaygraph 63 64)(ug:add-edge! railwaygraph 64 65)
+(ug:add-edge! railwaygraph 65 66)(ug:add-edge! railwaygraph 66 5)(ug:add-edge! railwaygraph 67 68)(ug:add-edge! railwaygraph 68 69)(ug:add-edge! railwaygraph 69 70)
+(ug:add-edge! railwaygraph 70 71)(ug:add-edge! railwaygraph 71 72)(ug:add-edge! railwaygraph 72 73)(ug:add-edge! railwaygraph 73 40)(ug:add-edge! railwaygraph 67 75)
+(ug:add-edge! railwaygraph 75 76)(ug:add-edge! railwaygraph 76 77)(ug:add-edge! railwaygraph 77 78)(ug:add-edge! railwaygraph 78 79)(ug:add-edge! railwaygraph 79 80)
+(ug:add-edge! railwaygraph 80 46)(ug:add-edge! railwaygraph 67 82)(ug:add-edge! railwaygraph 82 83)(ug:add-edge! railwaygraph 83 84)(ug:add-edge! railwaygraph 84 85)
+(ug:add-edge! railwaygraph 85 86)(ug:add-edge! railwaygraph 86 51)(ug:add-edge! railwaygraph 67 88)(ug:add-edge! railwaygraph 88 89)(ug:add-edge! railwaygraph 89 90)
+(ug:add-edge! railwaygraph 90 91)(ug:add-edge! railwaygraph 91 55)(ug:add-edge! railwaygraph 67 93)(ug:add-edge! railwaygraph 93 94)(ug:add-edge! railwaygraph 94 95)
+(ug:add-edge! railwaygraph 95 96)(ug:add-edge! railwaygraph 96 11)(ug:add-edge! railwaygraph 67 97)(ug:add-edge! railwaygraph 97 98)(ug:add-edge! railwaygraph 98 99)
+(ug:add-edge! railwaygraph 99 100)(ug:add-edge! railwaygraph 100 101)(ug:add-edge! railwaygraph 101 5)
 
 ; Function to determainate what direction the train should start it's path.
 (define (check-direction-is-left location next-location)
-  (let ((location-to-check-nr  (find-node-number location))
-        (next-location-nr (find-node-number next-location)))
-    (if (< location-to-check-nr next-location-nr)
-        #t
-        #f
-          )))
+  (display "go left"))
+;  (let ((location-to-check-nr  (find-node-number location))
+;        (next-location-nr (find-node-number next-location)))
+;    (if (< location-to-check-nr next-location-nr)
+;        #t
+;        #f
+;          )))
 
 ; This functions returns a list with the labels corresponding to the calculated route. 
 (define (route-please from to)
-  (route->labels (shortest-path graphtrack (hash-ref nodehash from) (hash-ref nodehash to))'()))
+  (route->labels (shortest-path railwaygraph from to)'()))
                                
 ; This function calculates the path to destination, copy from a-d with small adaptions.
 (define (shortest-path g from to)
@@ -147,9 +115,8 @@
            (list->mlist (list from)))
   (vector-ref paths to))
 
- 
-; Converts nodenumbers to nodenames
+ ; Converts nodenumbers to nodenames
 (define (route->labels list res)
   (if (empty? list)
       res
-      (route->labels (cdr list) (cons (vector-ref nodenames (car list))res))))
+      (route->labels (cdr list) (cons (vector-ref nodelabels (car list))res))))

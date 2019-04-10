@@ -104,6 +104,10 @@
     (stopat (string->symbol to) train)
     route ))
 
+(define (make-route-sections to train)
+  (let ((route (route-please (symbol->string (get-train-dblock (string->symbol train))) to)))
+    
+    ))
 ; A vector to keep track of reservations.
 (define dblock-reservations  (make-vector 10 0))
 
@@ -123,9 +127,7 @@
   (cond ((equal? (substring location 0 1)"S")
          (set-sw-position! (string->symbol (substring location 0 2)) (string->number (substring location 2 3))))
         ((equal? (substring location 0 1)"D")
-         (vector-set! dblock-reservations (string->number (substring location 1 2)) 1))
-        ((equal? (substring location 0 1)"T")
-         (display "T-ntd"))))
+         (vector-set! dblock-reservations (string->number (substring location 1 2)) 1))))
        
 ; This funtion removes a dblock reservation after the train left the dblock
 (define (remove-reservation location train)
