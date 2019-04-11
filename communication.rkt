@@ -1,7 +1,7 @@
 #lang racket
 (require "infrabel.rkt")
 
-(provide set-route set-speed! set-sw-position! add-train get-train-dblock)
+(provide set-route set-speed! set-sw-position! add-train get-train-dblock travel-section)
 
 (define (set-routeT dest train)
   (set-route dest train))

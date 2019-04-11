@@ -5,7 +5,7 @@
 (require "graphtrack.rkt")
 (require (prefix-in q: "a-d/queue/linked.rkt"))
 
-(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-positions)
+(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-positions travel-section)
 
 ; Total number of trains define the length of qvector
 (define nr-of-trains 2)
@@ -14,6 +14,7 @@
 ;(setup-loop-and-switches)
 (setup-hardware)
 (start)
+
 ; Train location and previous location.
 (define trains-positions (make-vector (+ nr-of-trains 1)0))
 
@@ -29,7 +30,7 @@
 
 ; Add train .
 (define (add-train train previous-pos position)
-  (vector-set! (vector-ref trains-positions train) 0 previous-pos)
+  (vector-set! (vector-ref trains-positions train) 0 (symbol->string previous-pos))
   (vector-set! (vector-ref trains-positions train) 1 position)
   (add-loco (string->symbol (string-append "T-"(number->string train))) previous-pos position))
 
@@ -51,11 +52,6 @@
 ;        (display "done")))
 ;  (do-all-trains 1))
 
-              
-    
-; vector to keep the queues of the trains.
-(define qvector (make-vector (+ nr-of-trains 1) (q:new))) 
-
 ; The following tree functions are provided to ask for or set changes in the simulator.
 (define (set-speed! train speed)
   (set-loco-speed! train speed))
@@ -73,77 +69,59 @@
               (if (eq? (get-train-dblock train) dblock)
                   (set-speed! train 0)
                   (loop))))))
-;
-;(define (collision-prevention train)
-;  (let* ((train-number (string->number (substring (symbol->string train) 2 3)))
-;        (next-location (q:serve! (vector-ref qvector train-number)))
-;        (list-of-trains (remove train-number (sequence->list (in-range 1 (+ nr-of-trains 1))))))
-;    (define (loop)
-;     (display x) )))
-; eq? over the get train location
-  
-              
-              
 
-; This function is called from gui to get the train going to destination.
-; No real check for reservation, the idea is a queue with positions for each train.
-; where serve! and peek are used to compare the routes of diferent trains and prevent collision.
+; vector to contain list with route sections at index train.
+(define all-train-routes (make-vector (+ nr-of-trains 1)'()))
+
+; cuts a route into subroutes, from dblock to dblock
+(define (make-route-sections train route indexes)
+  (define start caar)
+  (define items cdar)
+  (if (empty? indexes)
+      (display (vector-ref all-train-routes train))
+      (begin
+        (vector-set! all-train-routes train (cons (slice route (start indexes)(items indexes))(vector-ref all-train-routes train)))
+        (make-route-sections train route (cdr indexes))))) 
+
+; calculates the indexes for the routes to be extracted from route in make-route-sections. 
+(define (make-indexes route)
+  (define return '())
+  (define start car)
+  (define next cadr)
+  (let loop ((indexes  (indexes-where route (lambda (item)(not (equal? (substring  item 0 1)"S"))))))
+    (if (> (length indexes) 1) 
+        (begin
+          (set! return(cons (cons (start indexes) (+ (- (next indexes) (start indexes))1)) return))
+          (loop (cdr indexes)))
+        return)))
+
+; the actual list slicer to make sublists.
+(define (slice list offset n)
+  (take (drop list offset) n))
+
+; this funtion is called from gui when send button is pushed
+; it generates and prepares the route for a train.
 (define (set-route to train)
-  (display (route-please (symbol->string (get-train-dblock (string->symbol train))) to)))
-        
+  (let ((route (route-please (symbol->string (get-train-dblock (string->symbol train))) to))
+        (train-nr (string->number(substring train 2 3))))
+    (vector-set! all-train-routes train-nr '())
+    (display route) ;o remove
+    (make-route-sections (string->number(substring train 2 3)) route (make-indexes route))))
 
-(define (set-route2 to train)
-  (let ((route (route-please (symbol->string (get-train-dblock (string->symbol train))) (string->symbol to)))
-        (from (symbol->string(get-train-dblock train)))
-        (q (vector-ref qvector (string->number (substring (symbol->string train) 2 3)))))
-    (display route)
-    (route->queue route q)
-    (if (check-direction-is-left from (cadr route))
-        (set-speed! train -150)
-        (set-speed! train 150))
-    (stopat (string->symbol to) train)
-    route ))
-
-(define (make-route-sections to train)
-  (let ((route (route-please (symbol->string (get-train-dblock (string->symbol train))) to)))
-    
-    ))
-; A vector to keep track of reservations.
-(define dblock-reservations  (make-vector 10 0))
-
-; This function makes reservations in the dblock-reservations vector.
-(define (reserve-release-locations q train)
-  (if (not (q:empty? q))
-      (begin
-        (let ((location (q:serve! q)))
-          (location-inspector location)
-          (remove-reservation location train))
-        (reserve-release-locations q train))
-      (display " -q=empty- ")))
-      
-  
 ; A conditional to evoke functions based on the location, ex: set-sw-position! if location is a switch.
-(define (location-inspector location)
-  (cond ((equal? (substring location 0 1)"S")
-         (set-sw-position! (string->symbol (substring location 0 2)) (string->number (substring location 2 3))))
-        ((equal? (substring location 0 1)"D")
-         (vector-set! dblock-reservations (string->number (substring location 1 2)) 1))))
-       
-; This funtion removes a dblock reservation after the train left the dblock
-(define (remove-reservation location train)
-  (thread (lambda ()
-            (let loop()
-              (if (not (equal? (get-train-dblock train) location))
-                  (vector-set! dblock-reservations (string->number (substring location 1 2)) 0)
-                  (loop))))))
+(define (position-inspector position)
+  (cond ((equal? (substring position 0 1)"S")
+         (set-sw-position! (string->symbol (substring position 0 2)) (string->number (substring position 2 3))))
+        ((equal? (substring position 0 1)"D")
+         (vector-set! (string->number (substring position 1 2)) 1))))
 
-; Turns the received list into a queue
-(define (route->queue route q)
-  (define location car)
-  (if (not (empty? route))
-      (begin
-        (q:enqueue! q (location route))
-        (route->queue (cdr route)q ))
-      q))
-
-
+; Continue here
+(define (travel-section train section)
+  (let ((start (first section))
+        (destination (last section))
+        (train (string->symbol(string-append "T-"(number->string train)))))
+    (for-each (lambda (position)(position-inspector position))section)
+    (if (direction?)
+        (set-speed! train 200)
+        (set-speed! train -200))))
+   

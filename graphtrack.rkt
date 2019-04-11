@@ -8,7 +8,7 @@
 (require compatibility/mlist)
 (require racket/vector)
 
-(provide route-please check-direction-is-left)
+(provide route-please direction?)
 
 (define ORDER 102)
 
@@ -31,7 +31,13 @@
 (define nodelabels (make-vector ORDER 0))
   
 (define nodehash (hash "1-1" 0 "1-2" 22 "1-3" 31 "1-4" 17 "1-5" 18 "1-6" 8 "1-7" 7 "1-8" 67
-                       "2-1" 34 "2-2" 55 "2-3" 11 "2-4" 5 "2-5" 51 "2-6" 46 "2-7" 40 "2-8"))
+                       "2-1" 34 "2-2" 55 "2-3" 11 "2-4" 5 "2-5" 51 "2-6" 46 "2-7" 40))
+(define directionhash (hash "1-12-4" #t "1-12-3" #t "1-11-7" #f "1-11-4" #f "1-22-3" #t "1-22-4" #t "1-21-4" #f "1-32-4" #t "1-31-4" #f
+                            "1-41-1" #t "1-41-2" #t "1-41-3" #t "1-41-5" #f "1-51-4" #t "1-52-4" #f "1-61-7" #t "1-62-3" #f "1-62-4" #f
+                            "1-71-1" #t "1-71-6" #f "1-82-2" #f "1-82-3" #f "1-82-4" #f "1-82-5" #f "1-82-6" #f "1-82-7" #f "2-12-2" #f
+                            "2-12-3" #f "2-12-4" #f "2-12-5" #f "2-12-6" #f "2-12-7" #f "2-31-6" #t "2-31-8" #t "2-32-1" #t "2-31-2" #t
+                            "2-31-1" #f "2-41-5" #t "2-41-8" #t "2-42-1" #t "2-41-1" #f "2-41-2" #f "2-41-3" #f "2-22-1" #t "2-21-8" #t
+                            "2-52-1" #t "2-51-8" #t "2-62-1" #t "2-61-8" #t "2-72-1" #t "2-71-8" #t))
 
 ; Dblocks
 (vector-set! nodelabels 0 "1-1")(vector-set! nodelabels 22 "1-2")(vector-set! nodelabels 31 "1-3")
@@ -57,7 +63,8 @@
 (vector-set! nodelabels 23 "S091")(vector-set! nodelabels 26 "S092")(vector-set! nodelabels 1 "S101")(vector-set! nodelabels 12 "S101")
 (vector-set! nodelabels 29 "S102")(vector-set! nodelabels 24 "S111")(vector-set! nodelabels 2 "S112")(vector-set! nodelabels 13 "S112")
 (vector-set! nodelabels 3 "S121")(vector-set! nodelabels 14 "S122")(vector-set! nodelabels 25 "S122")(vector-set! nodelabels 28 "S161")
-(vector-set! nodelabels 26 "S162")(vector-set! nodelabels 19 "S201")(vector-set! nodelabels 66 "S202")(vector-set! nodelabels 6 "S231")
+(vector-set! nodelabels 26 "S162")(vector-set! nodelabels 19 "S201")(vector-set! nodelabels 66 "S202")(vector-set! nodelabels 101 "S202")
+(vector-set! nodelabels 6 "S231")
 (vector-set! nodelabels 16 "S232")(vector-set! nodelabels 27 "S241")(vector-set! nodelabels 32 "S242")(vector-set! nodelabels 68 "S251")
 (vector-set! nodelabels 75 "S251")(vector-set! nodelabels 82 "S251")(vector-set! nodelabels 88 "S251")(vector-set! nodelabels 93 "S252")
 (vector-set! nodelabels 97 "S252")(vector-set! nodelabels 16 "S261")(vector-set! nodelabels 20 "S262")(vector-set! nodelabels 29 "S262")
@@ -87,19 +94,11 @@
 (ug:add-edge! railwaygraph 95 96)(ug:add-edge! railwaygraph 96 11)(ug:add-edge! railwaygraph 67 97)(ug:add-edge! railwaygraph 97 98)(ug:add-edge! railwaygraph 98 99)
 (ug:add-edge! railwaygraph 99 100)(ug:add-edge! railwaygraph 100 101)(ug:add-edge! railwaygraph 101 5)
 
-; Function to determainate what direction the train should start it's path.
-(define (check-direction-is-left location next-location)
-  (display "go left"))
-;  (let ((location-to-check-nr  (find-node-number location))
-;        (next-location-nr (find-node-number next-location)))
-;    (if (< location-to-check-nr next-location-nr)
-;        #t
-;        #f
-;          )))
 
-; This functions returns a list with the labels corresponding to the calculated route. 
-(define (route-please from to)
-  (route->labels (shortest-path railwaygraph from to)'()))
+
+; Function to determainate what direction the train should start it's path.
+(define (direction? position destination)
+  (hash-ref directionhash (string-append position destination)))
                                
 ; This function calculates the path to destination, copy from a-d with small adaptions.
 (define (shortest-path g from to)
@@ -120,3 +119,7 @@
   (if (empty? list)
       res
       (route->labels (cdr list) (cons (vector-ref nodelabels (car list))res))))
+
+; This functions returns a list with the labels corresponding to the calculated route. 
+(define (route-please from to)
+  (route->labels (shortest-path railwaygraph (hash-ref nodehash from) (hash-ref nodehash to))'()))

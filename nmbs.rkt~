@@ -1,11 +1,14 @@
 #lang racket
 
 (require "railway.rkt")
-(require "infrabel.rkt")
+(require "communication.rkt")
+(require "gui.rkt")
+;(require "graphtrack.rkt")
 
 
 ; Definition of start values
 (define last-location 'D1)
+(define keep-running #t)
 
 
 ; Function to ask for train location and update the gui.
@@ -20,10 +23,8 @@
        'Unkown-Location-or-No-Update-Required)))
 
 ; A thread to constantly update the detection blocks for train location.
-(define update (thread (lambda ()
-                         (let loop ()
-                           (update-location 'T-1)
-                           (update-location 'T-2)
-                           (loop)))))
-
-
+;(define update (thread (lambda ()
+;                         (let loop ()
+;                           (update-location 'T-1)
+;                            (loop)))))
+;
