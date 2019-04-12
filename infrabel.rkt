@@ -5,52 +5,20 @@
 (require "graphtrack.rkt")
 (require (prefix-in q: "a-d/queue/linked.rkt"))
 
-(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train trains-positions travel-section)
+(provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train travel-section travel-route)
 
-; Total number of trains define the length of qvector
+; Total number of trains.
 (define nr-of-trains 2)
+(define list-of-trains (list 'T-1 'T-2))
 
 ; Setup and sart the simulator 
 ;(setup-loop-and-switches)
 (setup-hardware)
-(start)
-
-; Train location and previous location.
-(define trains-positions (make-vector (+ nr-of-trains 1)0))
-
-(define (fill-trains-positions)
-  (define (fill count)
-    (if (<= count nr-of-trains)
-        (begin (vector-set! trains-positions count (make-vector 2 0)) (fill (+ 1 count)))
-        (display "filled")))
-  (fill 0))
-
-(fill-trains-positions)
-        
+(start) 
 
 ; Add train .
 (define (add-train train previous-pos position)
-  (vector-set! (vector-ref trains-positions train) 0 (symbol->string previous-pos))
-  (vector-set! (vector-ref trains-positions train) 1 position)
   (add-loco (string->symbol (string-append "T-"(number->string train))) previous-pos position))
-
-;(define (update-trains-locations)
-;  (define (do-all-trains train)
-;    (if (<= train nr-of-trains)
-;        (begin
-;          (let ((previous-location (vector-ref (vector-ref trains-locations train) 0 ))
-;                (actual-location (get-train-dblock (string->symbol (string-append "T-"(number->string train))))))
-;            (if (eq? previous-location actual-location)
-;                (begin
-;                  (display "no-updt") (do-all-trains (+ 1 train)))
-;                (begin
-;                  (vector-set! (vector-ref trains-locations train) 0 previous-location)
-;                  (vector-set! (vector-ref trains-locations train) 1 actual-location)
-;                  (display train)
-;                  (do-all-trains (+ 1 train))
-;                  ))))
-;        (display "done")))
-;  (do-all-trains 1))
 
 ; The following tree functions are provided to ask for or set changes in the simulator.
 (define (set-speed! train speed)
@@ -63,11 +31,12 @@
   (get-loco-detection-block train))
 
 ; A thread to detect train location and set the train speed to zero when train is on dblock
-(define (stopat dblock train)
+(define (stopat dblock train position)
   (thread (lambda ()
             (let loop ()
               (if (eq? (get-train-dblock train) dblock)
-                  (set-speed! train 0)
+                  (begin (set-speed! train 0)
+                         (vector-set! dblock-status position #t)) 
                   (loop))))))
 
 ; vector to contain list with route sections at index train.
@@ -108,20 +77,69 @@
     (display route) ;o remove
     (make-route-sections (string->number(substring train 2 3)) route (make-indexes route))))
 
+(define NR-OF-DBLOCKS 16)
+
+;; vector for dblock reservations, if vector-ref #t dblock is free.
+(define dblock-status (make-vector (+ NR-OF-DBLOCKS 1) #t))
+
+;; extracts index from dblock name.
+(define (get-dblock-nr position)
+  (if (string<? position "2-1")
+      (string->number (substring position 2 3))
+      (+ (string->number (substring position 2 3)) 8)))
+
+(define (update-dblocks-status) ; this only sets current location, two trains could drive to same destination!
+  (vector-fill! dblock-status #t)
+  (let loop ((trains list-of-trains))
+    (if (empty? trains)
+        'up-to-date
+        (begin (vector-set! dblock-status (string->number (get-dblock-nr (symbol->string (get-train-dblock (car trains)))))#f)
+               (loop (cdr trains)))))) 
+
+(define NR-OF-SWITCHES 28)
+(define switch-status (make-vector (+ NR-OF-SWITCHES 1)#t))
+                                   
 ; A conditional to evoke functions based on the location, ex: set-sw-position! if location is a switch.
+(define (get-switch-nr position)
+  (if (string<? position "S100")
+      (substring position 2 3)
+      (substring position 1 3)))
+
+;; this position inspector sets (physical) switches and reserves dblocks and switches in their status vectors.
 (define (position-inspector position)
   (cond ((equal? (substring position 0 1)"S")
-         (set-sw-position! (string->symbol (substring position 0 2)) (string->number (substring position 2 3))))
-        ((equal? (substring position 0 1)"D")
-         (vector-set! (string->number (substring position 1 2)) 1))))
+         (set-sw-position! (string->symbol(string-append "S-" (get-switch-nr position))) (string->number (substring position 3 4)))
+         (vector-set! switch-status (string->number(get-switch-nr position)) #f))
+        (else (vector-set! dblock-status (get-dblock-nr position) #f))))
 
-; Continue here
+; function to handel a section of a train route, a section goes from dblock to next dblock.
 (define (travel-section train section)
   (let ((start (first section))
         (destination (last section))
-        (train (string->symbol(string-append "T-"(number->string train)))))
-    (for-each (lambda (position)(position-inspector position))section)
-    (if (direction?)
-        (set-speed! train 200)
-        (set-speed! train -200))))
-   
+        (train-symbol (string->symbol(string-append "T-"(number->string train)))))
+    (if (vector-ref dblock-status (get-dblock-nr destination)); make a function to test the whole section not only destination but also switches.
+        (begin
+          (for-each (lambda (position)(position-inspector position))section)
+          (if (direction? start destination)
+              (set-speed! train-symbol 200)
+              (set-speed! train-symbol -200))
+          (stopat (string->symbol destination) train-symbol (get-dblock-nr start)))
+        'dest-not-free )))
+
+(define (travel-route train)
+  (define next-section car)
+  (let loop ((route (vector-ref all-train-routes train)))
+    (if (empty? route)
+        'traveled
+        (begin (travel-section train (next-section route))(loop (cdr route))))))
+
+; Some function to ittirate over trains and there sections. like in every ittireation handel next section for train x
+; list to vector vector length gives # of sections and each itteration handle section index +1..?
+; when reserving also need to block switches!
+
+; vector-ref all-train-routes index is train start first section for all trains.
+; handle next only if first is finished this can be done by asking the train location must equal destination, then start next section
+
+;(define (handle-all-train-routes)
+; (define
+
