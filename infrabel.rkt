@@ -3,7 +3,7 @@
 (require "gui_simulator/interface.rkt") ; Simulator interface
 ;(require "hw_interface/interface.rkt") ; Hardware interface
 (require "graphtrack.rkt")
-(require (prefix-in q: "a-d/queue/linked.rkt"))
+;(require (prefix-in q: "a-d/queue/linked.rkt"))
 
 (provide set-speed! set-sw-position! get-train-dblock stopat set-route add-train travel-section travel-route)
 
@@ -106,20 +106,30 @@
       (substring position 1 3)))
 
 ;; this position inspector sets (physical) switches and reserves dblocks and switches in their status vectors.
-(define (position-inspector position)
+(define (position-inspector! position)
   (cond ((equal? (substring position 0 1)"S")
          (set-sw-position! (string->symbol(string-append "S-" (get-switch-nr position))) (string->number (substring position 3 4)))
          (vector-set! switch-status (string->number(get-switch-nr position)) #f))
         (else (vector-set! dblock-status (get-dblock-nr position) #f))))
+
+;; check's the status of a switch or dblock, this funtion helps (section-free?)
+(define (check-status position)
+  (if (equal? (substring position 0 1)"S")
+      (vector-ref switch-status (string->number(get-switch-nr position)))
+      (vector-ref dblock-status (get-dblock-nr position))))
+
+;; runs over a section (list) and only returns #t (free) if all positions of the section are free.
+(define (section-free? section)
+  (andmap (lambda (position) (check-status position)) section))
 
 ; function to handel a section of a train route, a section goes from dblock to next dblock.
 (define (travel-section train section)
   (let ((start (first section))
         (destination (last section))
         (train-symbol (string->symbol(string-append "T-"(number->string train)))))
-    (if (vector-ref dblock-status (get-dblock-nr destination)); make a function to test the whole section not only destination but also switches.
+    (if (section-free? section)
         (begin
-          (for-each (lambda (position)(position-inspector position))section)
+          (for-each (lambda (position)(position-inspector! position))section)
           (if (direction? start destination)
               (set-speed! train-symbol 200)
               (set-speed! train-symbol -200))
@@ -128,12 +138,19 @@
 
 (define (travel-route train)
   (define next-section car)
+  
   (let loop ((route (vector-ref all-train-routes train)))
     (if (empty? route)
         'traveled
         (begin (travel-section train (next-section route))(loop (cdr route))))))
 
+;(define (run)
+  
+  
+  
 ; Some function to ittirate over trains and there sections. like in every ittireation handel next section for train x
+;some value chnages when train finishe section, only then next section can start.
+;a new route can only be introduced on destiation.
 ; list to vector vector length gives # of sections and each itteration handle section index +1..?
 ; when reserving also need to block switches!
 
@@ -143,3 +160,5 @@
 ;(define (handle-all-train-routes)
 ; (define
 
+
+  

@@ -24,7 +24,7 @@
 
 ; A thread to constantly update the detection blocks for train location.
 ;(define update (thread (lambda ()
-;                         (let loop ()
-;                           (update-location 'T-1)
+ ;                        (let loop ()
+ ;                          (update-location 'T-1)
 ;                            (loop)))))
 ;
