@@ -3,7 +3,7 @@
 (require racket/gui)
 (require "communication.rkt")
 
-(provide make-switch-gui make-dblock-gui make-train-gui set-dblock-free! set-dblock-occp! show-train-location)
+(provide make-switch-gui make-dblock-gui make-train-gui set-dblock-free! set-dblock-occp! show-train-location list-of-trains)
 
 ; Make a frame, panel and columns to hold the gui in place
 (define frame (new frame% [label "NMBS"][width 800]))
@@ -84,9 +84,9 @@
  
 ; Functie voor het in beeld brengen van de locatie van de trein.
 (define (show-train-location id location)
-  (send (vector-ref gui-dblocks (string->number (substring (symbol->string  location )1 2)))set-value 1)
-  (send (vector-ref gui-train-locations id) set-label (symbol->string location))
-  (send (vector-ref gui-dblocks (string->number (substring (symbol->string  location )1 2)))set-value 0))
+  ;(send (vector-ref gui-dblocks (string->number (substring (symbol->string  location )1 2))) set-value 1)
+  (send (vector-ref gui-train-locations id) set-label (symbol->string location)))
+  ;(send (vector-ref gui-dblocks (string->number (substring (symbol->string  location )1 2)))set-value 0))
 
 ; We vragen aan frame zich te toonen op het scherm.
 (send frame show #t) 
