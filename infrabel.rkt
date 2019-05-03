@@ -99,7 +99,7 @@
 ;; this funtion releases the reserved route. 
 (define (free-reservations section)
   (if (empty? section)
-      'done
+      'none
       (begin
         (let [(position (first section))]
           (cond ((equal? (substring position 0 1)"S")(vector-set! switch-status (string->number(get-switch-nr position)) #t)(free-reservations (cdr section)))
@@ -120,14 +120,15 @@
   (let ((start (first section))
         (destination (last section))
         (train-symbol (string->symbol(string-append "T-"(number->string train)))))
-    (if (section-free? section)
+    (if (section-free? (cdr section))
         (begin
           (for-each (lambda (position)(position-inspector! position))section)
           (if (direction? start destination)
               (set-speed! train-symbol 200)
               (set-speed! train-symbol -200))
           (stopat (string->symbol destination) train-symbol)
-          (free-reservations section)) 
+          (free-reservations section)
+          (vector-set! dblock-status (get-dblock-nr destination) #f))
         (display "dest-not-free") )))
 
 ;; travel-route call's travel-section for every section of the calculated route for train.

@@ -2,8 +2,6 @@
 
 (require "a-d/graph/labeled/adjacency-matrix.rkt")
 (require (prefix-in ug: "a-d/graph/unweighted/adjacency-list.rkt"))
-
-(require "a-d/graph-traversing/bft-labeled.rkt")
 (require (prefix-in ugt: "a-d/graph-traversing/bft.rkt"))
 (require compatibility/mlist)
 (require racket/vector)
@@ -12,10 +10,10 @@
 
 (define ORDER 102)
 
-; railwaygraph is the tree that represents the railway.
+;; railwaygraph is the tree that represents the railway.
 (define railwaygraph (ug:new #f ORDER))
 
-; Nodes 
+;; defines the nodes for railwaygraph. 
 (define 1-5 0)(define 1-4 1)(define S262 2)(define S272 3)(define 1-3 4)(define T2 5)(define S231 6)(define 2-4 7)
 (define S201 8)(define S271 9)(define 1-2 10)(define S092 11)(define S241 12)(define S091 13)(define S111 14)
 (define S121 15)(define S232 16)(define S122 17)(define 2-3 18)(define S261 19)(define T1 20)(define S282 21)
@@ -26,12 +24,12 @@
 (define S032 50)(define S081 51)(define S042 52)(define 2-7 53)(define 2-2 54)(define S082 55)(define 2-5 56)
 (define S012 57)(define S031 58)(define S242 59)(define S251 60)
 
-; Vector and hash for nodenr->nodelabel and nodelabel->nodenr translation.
-
+;; vector and hash for nodenr->nodelabel and nodelabel->nodenr translation.
 (define nodelabels (make-vector ORDER 0))
-  
 (define nodehash (hash "1-1" 0 "1-2" 22 "1-3" 31 "1-4" 17 "1-5" 18 "1-6" 8 "1-7" 7 "1-8" 67
                        "2-1" 34 "2-2" 55 "2-3" 11 "2-4" 5 "2-5" 51 "2-6" 46 "2-7" 40))
+
+;; finding the start direction uses this hash.
 (define directionhash (hash "1-12-4" #t "1-12-3" #t "1-11-7" #f "1-11-4" #f "1-22-3" #t "1-22-4" #t "1-21-4" #f "1-32-4" #t "1-31-4" #f
                             "1-41-1" #t "1-41-2" #t "1-41-3" #t "1-41-5" #f "1-51-4" #t "1-52-4" #f "1-61-7" #t "1-62-3" #f "1-62-4" #f
                             "1-71-1" #t "1-71-6" #f "1-82-2" #f "1-82-3" #f "1-82-4" #f "1-82-5" #f "1-82-6" #f "1-82-7" #f "2-12-2" #f
@@ -39,14 +37,15 @@
                             "2-31-1" #f "2-41-5" #t "2-41-8" #t "2-42-1" #t "2-41-1" #f "2-41-2" #f "2-41-3" #f "2-22-1" #t "2-21-8" #t
                             "2-52-1" #t "2-51-8" #t "2-62-1" #t "2-61-8" #t "2-72-1" #t "2-71-8" #t))
 
-; Dblocks
+;; filling the vector nodelabels to be used for node/number translations.
+;; dblocks
 (vector-set! nodelabels 0 "1-1")(vector-set! nodelabels 22 "1-2")(vector-set! nodelabels 31 "1-3")
 (vector-set! nodelabels 17 "1-4")(vector-set! nodelabels 18 "1-5")(vector-set! nodelabels 8 "1-6")
 (vector-set! nodelabels 7 "1-7")(vector-set! nodelabels 67 "1-8")(vector-set! nodelabels 34 "2-1")
 (vector-set! nodelabels 55 "2-2")(vector-set! nodelabels 11 "2-3")(vector-set! nodelabels 5 "2-4")
 (vector-set! nodelabels 51 "2-5")(vector-set! nodelabels 46 "2-6")(vector-set! nodelabels 40 "2-7")
  
-; Switches
+;; switches
 (vector-set! nodelabels 35 "S011")(vector-set! nodelabels 41 "S011")(vector-set! nodelabels 47 "S011")(vector-set! nodelabels 52 "S011")
 (vector-set! nodelabels 56 "S011")(vector-set! nodelabels 61 "S011")(vector-set! nodelabels 69 "S012")(vector-set! nodelabels 76 "S012")
 (vector-set! nodelabels 83 "S012")(vector-set! nodelabels 89 "S012")(vector-set! nodelabels 57 "S021")(vector-set! nodelabels 62 "S021")
@@ -70,7 +69,7 @@
 (vector-set! nodelabels 97 "S252")(vector-set! nodelabels 16 "S261")(vector-set! nodelabels 20 "S262")(vector-set! nodelabels 29 "S262")
 (vector-set! nodelabels 21 "S271")(vector-set! nodelabels 30 "S272")(vector-set! nodelabels 6 "S281")(vector-set! nodelabels 15 "S282")
 
-; Building railwaygraph.
+;; building railwaygraph.
 (ug:add-edge! railwaygraph 0 1)(ug:add-edge! railwaygraph 1 2)(ug:add-edge! railwaygraph 2 3)(ug:add-edge! railwaygraph 3 4)(ug:add-edge! railwaygraph 4 5)
 (ug:add-edge! railwaygraph 0 6)(ug:add-edge! railwaygraph 6 7)(ug:add-edge! railwaygraph 7 8)(ug:add-edge! railwaygraph 8 9)(ug:add-edge! railwaygraph 9 10)
 (ug:add-edge! railwaygraph 10 11)(ug:add-edge! railwaygraph 0 12)(ug:add-edge! railwaygraph 12 13)(ug:add-edge! railwaygraph 13 14)(ug:add-edge! railwaygraph 14 11)
@@ -94,13 +93,11 @@
 (ug:add-edge! railwaygraph 95 96)(ug:add-edge! railwaygraph 96 11)(ug:add-edge! railwaygraph 67 97)(ug:add-edge! railwaygraph 97 98)(ug:add-edge! railwaygraph 98 99)
 (ug:add-edge! railwaygraph 99 100)(ug:add-edge! railwaygraph 100 101)(ug:add-edge! railwaygraph 101 5)
 
-
-
-; Function to determainate what direction the train should start it's path.
+;; function to determainate what direction the train should start it's path.
 (define (direction? position destination)
   (hash-ref directionhash (string-append position destination)))
                                
-; This function calculates the path to destination, copy from a-d with small adaptions.
+;; this function calculates the path to destination, copy from a-d with small adaptions.
 (define (shortest-path g from to)
   (define paths (make-vector (ug:order g) '()))
   (vector-set! paths from (list from))
@@ -114,12 +111,12 @@
            (list->mlist (list from)))
   (vector-ref paths to))
 
- ; Converts nodenumbers to nodenames
+;; converts nodenumbers to nodenames
 (define (route->labels list res)
   (if (empty? list)
       res
       (route->labels (cdr list) (cons (vector-ref nodelabels (car list))res))))
 
-; This functions returns a list with the labels corresponding to the calculated route. 
+;; returns a list with the labels corresponding to the calculated route. 
 (define (route-please from to)
   (route->labels (shortest-path railwaygraph (hash-ref nodehash from) (hash-ref nodehash to))'()))

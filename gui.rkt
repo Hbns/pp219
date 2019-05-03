@@ -69,9 +69,12 @@
 
 ; Functie to build a train, shown in col3 on the gui.
 (define (make-train-gui id)
+  (new button% [parent col3][label "start"]
+       [callback (lambda (button event)(travel-route id))])
   (let ((location (new message% [parent col3]
                        [label "Off-tracks, no location!"])))
     (vector-set! gui-train-locations id location))
+ 
   (new slider% [parent (new horizontal-panel% [parent col3])]
        [label (string-append "T-"(number->string id))]
        [min-value -200]
@@ -84,9 +87,7 @@
  
 ; Functie voor het in beeld brengen van de locatie van de trein.
 (define (show-train-location id location)
-  ;(send (vector-ref gui-dblocks (string->number (substring (symbol->string  location )1 2))) set-value 1)
-  (send (vector-ref gui-train-locations id) set-label (symbol->string location)))
-  ;(send (vector-ref gui-dblocks (string->number (substring (symbol->string  location )1 2)))set-value 0))
+  (send (vector-ref gui-train-locations id) set-label (string-append "Location: "(symbol->string location))))
 
 ; We vragen aan frame zich te toonen op het scherm.
 (send frame show #t) 
