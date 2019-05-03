@@ -1,0 +1,1 @@
+("7.2" racket ("66de3ff9a5f79e99610d384de1efa1b0e54df089" . "8d4d3f0a1e68acf0686320991f7ece592aab5f6b") #"/home/hans/Documents/pp219/infrabel.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt") (collects #"racket" #"tcp.rkt"))

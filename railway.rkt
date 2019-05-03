@@ -1,7 +1,7 @@
 #lang racket
 
 (require "gui.rkt")
-(require "communication.rkt")
+(require "nmbs-com.rkt")
 
 (provide set-gui-train-location!)
 

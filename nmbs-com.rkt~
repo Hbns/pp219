@@ -4,10 +4,10 @@
 (provide set-route set-speed! set-sw-position! add-train get-train-dblock travel-section travel-route)
 
 (define (set-routeT dest train)
-  (set-route dest train))
+  (cons 'route! '(set-route dest train)))
 
 (define (set-speed!T id value)
-  (set-speed! id value))
+  (cons 'speed! '(set-speed! id value)))
 
 (define (set-sw-position!T id value)
   (set-sw-position! id value))

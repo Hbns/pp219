@@ -4,7 +4,7 @@
 ;(require "hw_interface/interface.rkt") ; Hardware interface
 (require "graphtrack.rkt")
 
-(provide set-speed! set-sw-position! get-train-dblock set-route add-train travel-section travel-route)
+(provide set-speed! set-sw-position! get-train-dblock set-route add-train travel-route)
 
 ; Total number of trains.
 (define NR-OF-TRAINS 2)
@@ -139,7 +139,3 @@
               (if (empty? route)
                   'traveled
                   (begin (travel-section train (next-section route))(loop (cdr route))))))))
-
-
-
-

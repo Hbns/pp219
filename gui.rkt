@@ -1,7 +1,7 @@
 #lang racket
 
 (require racket/gui)
-(require "communication.rkt")
+(require "nmbs-com.rkt")
 
 (provide make-switch-gui make-dblock-gui make-train-gui set-dblock-free! set-dblock-occp! show-train-location list-of-trains)
 
@@ -69,12 +69,9 @@
 
 ; Functie to build a train, shown in col3 on the gui.
 (define (make-train-gui id)
-  (new button% [parent col3][label "start"]
-       [callback (lambda (button event)(travel-route id))])
   (let ((location (new message% [parent col3]
                        [label "Off-tracks, no location!"])))
     (vector-set! gui-train-locations id location))
- 
   (new slider% [parent (new horizontal-panel% [parent col3])]
        [label (string-append "T-"(number->string id))]
        [min-value -200]
@@ -82,8 +79,9 @@
        [init-value 0]
        [callback (lambda (slider event)(let ((id (string->symbol (send slider get-label)))
                                              (value (send slider get-value)))
-                                         (set-speed! id value)
-                                         ))]))
+                                         (set-speed! id value)))])
+  (new button% [parent col3][label "start"]
+       [callback (lambda (button event)(travel-route id))]))
  
 ; Functie voor het in beeld brengen van de locatie van de trein.
 (define (show-train-location id location)

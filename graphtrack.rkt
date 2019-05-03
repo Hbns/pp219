@@ -1,6 +1,5 @@
 #lang racket
 
-(require "a-d/graph/labeled/adjacency-matrix.rkt")
 (require (prefix-in ug: "a-d/graph/unweighted/adjacency-list.rkt"))
 (require (prefix-in ugt: "a-d/graph-traversing/bft.rkt"))
 (require compatibility/mlist)
