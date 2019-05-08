@@ -1,7 +1,7 @@
 #lang racket
 
 (require racket/gui)
-(require "nmbs-com.rkt")
+(require "nmbs-client.rkt")
 
 (provide make-switch-gui make-dblock-gui make-train-gui set-dblock-free! set-dblock-occp! show-train-location list-of-trains)
 

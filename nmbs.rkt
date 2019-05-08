@@ -1,7 +1,7 @@
 #lang racket
 
 (require "railway.rkt")
-(require "nmbs-com.rkt")
+(require "nmbs-client.rkt")
 (require "gui.rkt")
 
 ;; returns an integer from a dblock string.

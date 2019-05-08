@@ -1,0 +1,32 @@
+#lang racket
+
+;(require racket/tcp)
+(require "infrabel.rkt")
+
+(thread (lambda ()
+(define listener (tcp-listen 9884 4 #t))
+(define-values (in out) (tcp-accept listener))
+(thread (lambda ()(let loop ()
+                    (functie (read in))
+                    (loop))))))
+
+;(write "Pong \n" out)
+;(flush-output out)
+;(tcp-close listener)
+;(close-input-port in)
+;(close-output-port out)
+
+(define (functie msg)
+  (displayln msg))
+
+;(define (perform-request pair)
+;  (define type car)
+;  (define fcall cdr)
+;  (cond [(eq? (type pair) 'speed!)(fcall pair)]
+;        [(eq? (type pair) 'switc!)(fcall pair)]
+;        [(eq? (type pair) 'dblock)(fcall pair)]
+;        [(eq? (type pair) 'route!)(fcall pair)]
+;        [(eq? (type pair) 'train!)(fcall pair)]
+;        [(eq? (type pair) 'travel)(fcall pair)]))
+         
+;(serve 1444)

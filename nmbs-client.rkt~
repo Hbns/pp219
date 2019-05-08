@@ -1,0 +1,33 @@
+#lang racket
+;(require "infrabel.rkt") 
+
+(provide set-route set-speed! set-sw-position! add-train get-train-dblock travel-route)
+
+(define (set-route dest train)
+  (write (list 'route! dest train) out)
+  (flush-output out))
+ 
+(define (set-speed! id value)
+  (write (list 'speed! id value) out)
+  (flush-output out))
+
+(define (set-sw-position! id value)
+  (write (list 'switch! id value) out)
+  (flush-output out))
+
+(define (add-train id previous-pos position)
+  (write (list 'train! id previous-pos position) out)
+  (flush-output out))
+
+(define (get-train-dblock train)
+  (write (list 'dblock train) out)
+  (flush-output out))
+
+(define (travel-route train)
+  (write (list 'travel train) out)
+  (flush-output out))
+
+(define-values (in out) (tcp-connect "localhost" 9884))
+
+;(write (list "name" "arg1" "arg2") out)
+;(flush-output out)

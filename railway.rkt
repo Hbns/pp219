@@ -1,7 +1,7 @@
 #lang racket
 
 (require "gui.rkt")
-(require "nmbs-com.rkt")
+(require "nmbs-client.rkt")
 
 (provide set-gui-train-location!)
 
@@ -60,7 +60,7 @@
           (begin
             (make-dblock-gui id (vector-ref db-vector id))
             (loop (+ 1 id)))
-          (display 'No-dblocks?)))
+          'No-dblocks?))
     (loop 1))
 
   ; Dispatch funtion
@@ -92,7 +92,7 @@
           (begin
             (make-train-gui id)
             (loop (+ 1 id)))
-          (display 'No-Trains?)))
+          'No-Trains?))
     (loop 1))
 
   ; Dispath functie

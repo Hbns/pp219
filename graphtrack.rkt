@@ -62,7 +62,7 @@
 (vector-set! nodelabels 29 "S102")(vector-set! nodelabels 24 "S111")(vector-set! nodelabels 2 "S112")(vector-set! nodelabels 13 "S112")
 (vector-set! nodelabels 3 "S121")(vector-set! nodelabels 14 "S122")(vector-set! nodelabels 25 "S122")(vector-set! nodelabels 28 "S161")
 (vector-set! nodelabels 26 "S162")(vector-set! nodelabels 19 "S201")(vector-set! nodelabels 66 "S202")(vector-set! nodelabels 101 "S202")
-(vector-set! nodelabels 6 "S231")
+(vector-set! nodelabels 6 "S231")(vector-set! nodelabels 33 "S231")
 (vector-set! nodelabels 4 "S232")(vector-set! nodelabels 27 "S241")(vector-set! nodelabels 32 "S242")(vector-set! nodelabels 68 "S251")
 (vector-set! nodelabels 75 "S251")(vector-set! nodelabels 82 "S251")(vector-set! nodelabels 88 "S251")(vector-set! nodelabels 93 "S252")
 (vector-set! nodelabels 97 "S252")(vector-set! nodelabels 16 "S261")(vector-set! nodelabels 20 "S262")(vector-set! nodelabels 29 "S262")

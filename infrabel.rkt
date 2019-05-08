@@ -4,7 +4,7 @@
 ;(require "hw_interface/interface.rkt") ; Hardware interface
 (require "graphtrack.rkt")
 
-(provide set-speed! set-sw-position! get-train-dblock set-route add-train travel-route)
+(provide set-speed! set-sw-position! add-train get-train-dblock set-route travel-route)
 
 ; Total number of trains.
 (define NR-OF-TRAINS 2)
@@ -48,10 +48,11 @@
 
 ;; calculates the indexes for the routes to be extracted from route in make-route-sections. 
 (define (make-indexes route)
+  (displayln route)
   (define return '())
   (define start car)
   (define next cadr)
-  (let loop ((indexes  (indexes-where route (lambda (item)(not (equal? (substring  item 0 1)"S"))))))
+  (let loop ((indexes (indexes-where route (lambda (item)(not (equal? (substring  item 0 1)"S"))))))
     (if (> (length indexes) 1) 
         (begin
           (set! return(cons (cons (start indexes) (+ (- (next indexes) (start indexes))1)) return))
@@ -120,16 +121,17 @@
   (let ((start (first section))
         (destination (last section))
         (train-symbol (string->symbol(string-append "T-"(number->string train)))))
-    (if (section-free? (cdr section))
-        (begin
-          (for-each (lambda (position)(position-inspector! position))section)
-          (if (direction? start destination)
-              (set-speed! train-symbol 200)
-              (set-speed! train-symbol -200))
-          (stopat (string->symbol destination) train-symbol)
-          (free-reservations section)
-          (vector-set! dblock-status (get-dblock-nr destination) #f))
-        (display "dest-not-free") )))
+    (let wait-free ()
+      (if (section-free? (cdr section))
+          (begin
+            (for-each (lambda (position)(position-inspector! position))section)
+            (if (direction? start destination)
+                (set-speed! train-symbol 200)
+                (set-speed! train-symbol -200))
+            (stopat (string->symbol destination) train-symbol)
+            (free-reservations section)
+            (vector-set! dblock-status (get-dblock-nr destination) #f))
+          (wait-free) ))))
 
 ;; travel-route call's travel-section for every section of the calculated route for train.
 (define (travel-route train)
@@ -137,5 +139,5 @@
             (define next-section car)
             (let loop ((route (vector-ref all-train-routes train)))
               (if (empty? route)
-                  'traveled
+                  (vector-set! all-train-routes train '()) 
                   (begin (travel-section train (next-section route))(loop (cdr route))))))))
