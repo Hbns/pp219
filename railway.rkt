@@ -5,12 +5,8 @@
 
 (provide set-gui-train-location!)
 
-; This file contains the adt's for building the required components
-; At the end of the file the track configuration is loaded.
-
-; Defines the length of the vectors.
-(define NR-OF-DBLOCKS 16)
-(define NR-OF-TRAINS 2)
+; this file contains the adt's for building the required components
+; at the end of the file the track configuration is loaded.
 
 ;;;;;;;;;;;;;;;;
 ; switches-adt ;
@@ -39,21 +35,21 @@
   dispatch-switch)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
-; Detection-Blocks-adt ;
+; detection-blocks-adt ;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (make-detectionblock-adt)
 
-  ; Constant definitions
+  ; constant definitions
   (define number-of-dblocks 0)
   (define db-vector(make-vector (+ NR-OF-DBLOCKS 1) 0))
 
-  ; Function to add detection blocks to the detection blocks vector.
+  ; function to add detection blocks to the detection blocks vector.
   (define (make-detection-block id name)
     (set! number-of-dblocks (+ number-of-dblocks 1))
     (vector-set! db-vector id name))
 
-  ; This function is called to build the gui by looping over the detection bock-vector.
+  ; this function is called to build the gui by looping over the detection bock-vector.
   (define (build-gui)
     (define (loop id) 
       (if (<= id number-of-dblocks)
@@ -63,7 +59,7 @@
           'No-dblocks?))
     (loop 1))
 
-  ; Dispatch funtion
+  ; dispatch funtion
   (define (dispatch-detection-block msg)
     (cond ((eq? msg 'make-detection-block) make-detection-block)
           ((eq? msg 'build-gui) build-gui)))
@@ -76,16 +72,16 @@
 
 (define (make-train-adt)
 
-  ; Define constants
+  ; define constants
   (define number-of-trains 0)
   (define train-vector(make-vector NR-OF-TRAINS 0))
 
-  ; Function to make and add trains.
+  ; function to make and add trains.
   (define (make-train id previous-pos position)
     (set! number-of-trains (+ number-of-trains 1))    
     (add-train id previous-pos position))
 
-  ; This function is called to build the gui by looping over the detection bock-vector.
+  ; this function is called to build the gui by looping over the detection bock-vector.
   (define (build-gui)
     (define (loop id) 
       (if (<= id number-of-trains)
@@ -95,36 +91,31 @@
           'No-Trains?))
     (loop 1))
 
-  ; Dispath functie
+  ; dispath functie
   (define (dispatch-trains msg)
     (cond ((eq? msg 'make-train) make-train)
           ((eq? msg 'build-gui) build-gui)))
           
   dispatch-trains)
 
-; Function to alter the displayed loaction of the train, provided to NMBS.
+;; function to alter the displayed loaction of the train in gui.
  
 (define (set-gui-train-location! id location last-location)
   (set-dblock-free! last-location)
   (show-train-location id location))
 
 ;;;;;;;;;;;;;;;;;;
-; Track creation ;
+; track creation ;
 ;;;;;;;;;;;;;;;;;;
 
-; Each part of the track is added to it's vector.
-; After the track exists in the vectors the buil-gui
-; function for each part is called to build the gui
-
-; Definition of the ADT's
+;; definition of the ADT's
 (define switches (make-switches-adt))
 (define detection-blocks (make-detectionblock-adt))
-
 (define trains (make-train-adt))
 
-; Creation of all parts (loop-and-switches)
+;; creation of all parts (hardware-setup)
 
-; switch id's from big to small! 
+;; switch id's from big to small to prevent a reverse list later.
 ((switches 'make-switch) 28 0)
 ((switches 'make-switch) 27 0)
 ((switches 'make-switch) 26 0)
@@ -165,7 +156,7 @@
 ((trains 'make-train) 1 '1-5 '1-4) 
 ((trains 'make-train) 2 '1-6 '1-7)
 
-; Initiation of the gui
+;; initiation of the gui
 ((detection-blocks 'build-gui))
 ((switches 'build-gui))
 ((trains 'build-gui))

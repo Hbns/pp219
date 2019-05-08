@@ -19,7 +19,7 @@
 (define dest "1-1")
 
 (define list-of-trains (list "T-1" "T-2"))
-(define list-of-dblocks  (list "1-1" "1-2" "1-3" "1-4" "1-5" "1-6" "1-7" "1-8" "2-1" "2-2" "2-3" "2-4" "2-5" "2-6" "2-7" "2-8"))
+(define list-of-dblocks  (list "1-1" "1-2" "1-3" "1-4" "1-5" "1-6" "1-7" "1-8" "2-1" "2-2" "2-3" "2-4" "2-5" "2-6" "2-7"))
 
 ; Makes the dropdown lists to select train and destination and a button send to call set-route in infrabel.
 (new choice% [parent desti][label "Train: "][choices list-of-trains]
@@ -29,10 +29,6 @@
 (new button% [parent desti][label "Send"]
      [callback (lambda (button event)(set-route dest train))])
                                                
-; The size of vectors 
-(define gui-dblocks-size 17)
-(define gui-trains-size 5)
-
 ; Function to build a switch, shown in col1 on the gui.
 (define (make-switch-gui id state)
   (new radio-box% [parent (new horizontal-panel% [parent col1])]
@@ -45,7 +41,7 @@
                                         (set-sw-position! id (+ 1 value))))]))
 
 ; Vector to hold the detecion blocks. 
-(define gui-dblocks(make-vector gui-dblocks-size 0))
+(define gui-dblocks(make-vector (+ NR-OF-DBLOCKS 1) 0))
 
 ; Function to build detection blocks, shown in col2 on the gui.
 (define (make-dblock-gui id name)
@@ -57,17 +53,17 @@
     (send dblock set-value free)
     (vector-set! gui-dblocks id dblock)))
 
-; Function to alter free and occupied visualization of a detection block.
+;; function to alter free and occupied visualization of a detection block.
 (define (set-dblock-free! id)
   (send (vector-ref gui-dblocks id) set-value 1))
 
 (define (set-dblock-occp! id)
   (send (vector-ref gui-dblocks id) set-value 0))  
 
-; Vector to hold the trains.
-(define gui-train-locations(make-vector gui-trains-size 0))
+;; vector to hold the trains.
+(define gui-train-locations(make-vector (+ NR-OF-TRAINS 1) 0))
 
-; Functie to build a train, shown in col3 on the gui.
+;; functie to build a train, shown in col3 on the gui.
 (define (make-train-gui id)
   (let ((location (new message% [parent col3]
                        [label "Off-tracks, no location!"])))
@@ -81,12 +77,14 @@
                                              (value (send slider get-value)))
                                          (set-speed! id value)))])
   (new button% [parent col3][label "start"]
-       [callback (lambda (button event)(travel-route id))]))
+       [callback (lambda (button event)(travel-route id))])
+  (new button% [parent col3][label "reset"]
+       [callback (lambda (button event)(reset-route id))]))
  
-; Functie voor het in beeld brengen van de locatie van de trein.
+;; functie voor het in beeld brengen van de locatie van de trein.
 (define (show-train-location id location)
   (send (vector-ref gui-train-locations id) set-label (string-append "Location: "(symbol->string location))))
 
-; We vragen aan frame zich te toonen op het scherm.
+;; to show the gui.
 (send frame show #t) 
 

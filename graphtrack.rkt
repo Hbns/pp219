@@ -3,7 +3,7 @@
 (require (prefix-in ug: "a-d/graph/unweighted/adjacency-list.rkt"))
 (require (prefix-in ugt: "a-d/graph-traversing/bft.rkt"))
 (require compatibility/mlist)
-(require racket/vector)
+;(require racket/vector)
 
 (provide route-please direction?)
 
@@ -25,8 +25,15 @@
 
 ;; vector and hash for nodenr->nodelabel and nodelabel->nodenr translation.
 (define nodelabels (make-vector ORDER 0))
+
+(define (find-label node)
+  (vector-ref nodelabels node))
+
 (define nodehash (hash "1-1" 0 "1-2" 22 "1-3" 31 "1-4" 17 "1-5" 18 "1-6" 8 "1-7" 7 "1-8" 67
                        "2-1" 34 "2-2" 55 "2-3" 11 "2-4" 5 "2-5" 51 "2-6" 46 "2-7" 40))
+
+(define (find-node label)
+  (hash-ref nodehash label))
 
 ;; finding the start direction uses this hash.
 (define directionhash (hash "1-12-4" #t "1-12-3" #t "1-11-7" #f "1-11-4" #f "1-22-3" #t "1-22-4" #t "1-21-4" #f "1-32-4" #t "1-31-4" #f
@@ -114,8 +121,8 @@
 (define (route->labels list res)
   (if (empty? list)
       res
-      (route->labels (cdr list) (cons (vector-ref nodelabels (car list))res))))
+      (route->labels (cdr list) (cons (find-label (first list))res))))
 
 ;; returns a list with the labels corresponding to the calculated route. 
 (define (route-please from to)
-  (route->labels (shortest-path railwaygraph (hash-ref nodehash from) (hash-ref nodehash to))'()))
+  (route->labels (shortest-path railwaygraph (find-node from) (find-node to))'()))

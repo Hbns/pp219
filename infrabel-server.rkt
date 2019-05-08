@@ -22,12 +22,15 @@
                     [(eq? proc 'dblock)(send (cons (get-train-dblock (list-ref list 1))return-msg))]
                     [(eq? proc 'route!)(set-route (list-ref list 1)(list-ref list 2))]
                     [(eq? proc 'travel)(travel-route (list-ref list 1))]
+                    [(eq? proc 'reset)(reset-route (list-ref list 1))]
                     [else (display "tcp-translate-error")])))
           (thread (lambda ()(let loop ()
                               (server-translate (read in))
                               (loop))))))
-        
+
 ;(tcp-close listener)
 ;(close-input-port in)
 ;(close-output-port out)
+        
+
 

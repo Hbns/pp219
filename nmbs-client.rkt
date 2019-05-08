@@ -1,7 +1,10 @@
 #lang racket
 ;(require "infrabel.rkt") 
 
-(provide set-speed! set-sw-position! add-train get-train-dblock set-route travel-route)
+(provide set-speed! set-sw-position! add-train get-train-dblock set-route travel-route reset-route NR-OF-TRAINS NR-OF-DBLOCKS close-ports)
+
+(define NR-OF-TRAINS 2)
+(define NR-OF-DBLOCKS 16)
 
 ;; the following functions forward the function call as a scheme list to the tcp server.
 ;; get-train-dblock receives and returns the value asked for.
@@ -30,7 +33,14 @@
 (define (travel-route train)
   (write (list 'travel train) out)
   (flush-output out))
+
+(define (reset-route train)
+  (write (list 'reset train) out)
+  (flush-output out))
   
 ;; the values neccesary to make tcp communication possible.
 (define-values (in out) (tcp-connect "localhost" 9883))
 
+(define (close-ports)
+  (close-input-port in)
+  (close-output-port out))
