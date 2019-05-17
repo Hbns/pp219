@@ -3,13 +3,18 @@
 (require "gui_simulator/interface.rkt") ; Simulator interface
 ;(require "hw_interface/interface.rkt") ; Hardware interface
 (require "graphtrack.rkt")
+(require rackunit)
+
+;;some rackunit testing.
+(check-equal? (slice (list 1 2 3 4 5 6) 2 3)(list 3 4 5))
+(check-equal? (get-switch-nr "S271") "27")
 
 (provide set-speed! set-sw-position! add-train get-train-dblock set-route travel-route reset-route)
 
-; Total number of trains.
+;; Total number of trains.
 (define NR-OF-TRAINS 2)
 
-; Setup and sart the simulator 
+;; Setup and start the simulator 
 (setup-hardware)
 (start) 
 
@@ -107,7 +112,6 @@
 
 (define (switch-free? switch)
   (vector-ref switch-status switch))
-
                                    
 ;; to deduce the switch number from a string in section.
 (define (get-switch-nr position)
@@ -124,12 +128,10 @@
 
 ;; this funtion releases the reserved route. 
 (define (free-reservations section)
-  (if (empty? section)
-      'none
-      (begin
-        (let [(position (first section))]
-          (cond ((equal? (substring position 0 1)"S")(switch-free! (string->number(get-switch-nr position)))(free-reservations (cdr section)))
-                (else (dblock-free! (get-dblock-nr position))(free-reservations (cdr section))))))))
+  (unless (empty? section)
+    (let [(position (first section))]
+      (cond ((equal? (substring position 0 1)"S")(switch-free! (string->number(get-switch-nr position)))(free-reservations (cdr section)))
+            (else (dblock-free! (get-dblock-nr position))(free-reservations (cdr section)))))))
 
 ;; check's the status of a switch or dblock, this funtion helps (section-free?)
 (define (check-status position)
@@ -156,7 +158,7 @@
             (stopat (string->symbol destination) train-symbol)
             (free-reservations section)
             (dblock-occp! (get-dblock-nr destination)))
-          (wait-free) ))))
+          (wait-free)))))
 
 ;; travel-route call's travel-section for every section of the calculated route for train.
 (define (travel-route train)

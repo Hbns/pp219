@@ -2,7 +2,7 @@
 
 (require "infrabel.rkt")
 
-;; this thread starts the tcp server and thread to read the in port.
+;; this thread starts the tcp server and a thread to read the in port.
 ;; the in port receives a scheme list and (server-translate) breaks
 ;; the list down into a function call for infrabel.rkt. return-msg
 ;; contains the list with values to return.
@@ -14,7 +14,7 @@
             (write m out)
             (flush-output out))
           (define (server-translate list)
-            (displayln list);prints log 
+            (displayln list);prints log to console 
             (let [(proc (first list))]
               (cond [(eq? proc 'speed!)(set-speed! (list-ref list 1)(list-ref list 2))]
                     [(eq? proc 'switch!)(set-sw-position! (list-ref list 1)(list-ref list 2))]
@@ -28,9 +28,6 @@
                               (server-translate (read in))
                               (loop))))))
 
-;(tcp-close listener)
-;(close-input-port in)
-;(close-output-port out)
-        
+   
 
 

@@ -3,10 +3,8 @@
 (require (prefix-in ug: "a-d/graph/unweighted/adjacency-list.rkt"))
 (require (prefix-in ugt: "a-d/graph-traversing/bft.rkt"))
 (require compatibility/mlist)
-;(require racket/vector)
 
 (provide route-please direction?)
-
 (define ORDER 102)
 
 ;; railwaygraph is the tree that represents the railway.
@@ -126,3 +124,5 @@
 ;; returns a list with the labels corresponding to the calculated route. 
 (define (route-please from to)
   (route->labels (shortest-path railwaygraph (find-node from) (find-node to))'()))
+
+    

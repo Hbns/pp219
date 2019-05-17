@@ -15,36 +15,32 @@
 
 ;; update's the gui for train position and dblock status.
 (define (update-location trains)
-  (if (empty? trains)
-      'done
-      (begin
-        (let* [(train (first trains))
-               (train-nr (string->number (substring train 2 3)))
-               (dblock (get-train-dblock (string->symbol train)))
-               (previous-dblock-nr (vector-ref last-position train-nr))]
-          (set-dblock-free! previous-dblock-nr)
-          (if(not (eq? dblock #f))
-             (begin
-               (let [(dblock-nr (get-dblock-nr (symbol->string dblock)))]
-                 (vector-set! last-position train-nr dblock-nr)
-                 (show-train-location train-nr dblock)
-                 (set-dblock-occp! dblock-nr)
-                 (update-location (cdr trains))))
-             'Unkown-Location)))))
+  (unless (empty? trains)
+    (let* [(train (first trains))
+           (train-nr (string->number (substring train 2 3)))
+           (dblock (get-train-dblock (string->symbol train)))
+           (previous-dblock-nr (vector-ref last-position train-nr))]
+      (set-dblock-free! previous-dblock-nr)
+      (if(not (eq? dblock #f))
+         (begin
+           (let [(dblock-nr (get-dblock-nr (symbol->string dblock)))]
+             (vector-set! last-position train-nr dblock-nr)
+             (show-train-location train-nr dblock)
+             (set-dblock-occp! dblock-nr)
+             (update-location (cdr trains))))
+         'Unkown-Location))))
 
 ;; update's the gui for train position and dblock status at startup.
 (define (update-location-start-screen trains)
-  (if (empty? trains)
-      'done
-      (begin
-        (let* [(train (first trains))
-               (train-nr (string->number (substring train 2 3)))
-               (dblock (get-train-dblock (string->symbol train)))
-               (dblock-nr (get-dblock-nr (symbol->string dblock)))]
-          (vector-set! last-position train-nr dblock-nr)
-          (show-train-location train-nr dblock)
-          (set-dblock-occp! dblock-nr))
-        (update-location-start-screen (cdr trains)))))
+  (unless (empty? trains)
+    (let* [(train (first trains))
+           (train-nr (string->number (substring train 2 3)))
+           (dblock (get-train-dblock (string->symbol train)))
+           (dblock-nr (get-dblock-nr (symbol->string dblock)))]
+      (vector-set! last-position train-nr dblock-nr)
+      (show-train-location train-nr dblock)
+      (set-dblock-occp! dblock-nr))
+    (update-location-start-screen (cdr trains))))
 
 (update-location-start-screen list-of-trains)
 
@@ -53,3 +49,4 @@
                          (let loop ()
                            (update-location list-of-trains)
                            (loop)))))
+

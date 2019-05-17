@@ -5,7 +5,7 @@
 
 (provide make-switch-gui make-dblock-gui make-train-gui set-dblock-free! set-dblock-occp! show-train-location list-of-trains)
 
-; Make a frame, panel and columns to hold the gui in place
+;; make a frame, panel and columns to hold the gui in place
 (define frame (new frame% [label "NMBS"][width 800]))
 (define desti (new horizontal-panel% [parent frame]))
 (define panel (new horizontal-panel% [parent frame]))
@@ -14,14 +14,14 @@
 (define col2 (new vertical-panel% [parent panel]))
 (define col3 (new vertical-panel% [parent panel]))
 
-; startvalues for variables used in the dropdown lists when using send.
+;; startvalues for variables used in the dropdown lists when using send.
 (define train "T-1")
 (define dest "1-1")
 
 (define list-of-trains (list "T-1" "T-2"))
 (define list-of-dblocks  (list "1-1" "1-2" "1-3" "1-4" "1-5" "1-6" "1-7" "1-8" "2-1" "2-2" "2-3" "2-4" "2-5" "2-6" "2-7"))
 
-; Makes the dropdown lists to select train and destination and a button send to call set-route in infrabel.
+;; makes the dropdown lists to select train and destination and a button send to call set-route in infrabel.
 (new choice% [parent desti][label "Train: "][choices list-of-trains]
      [callback (lambda (choice event)(set! train (send choice get-string-selection)))])
 (new choice% [parent desti][label "Location: "][choices list-of-dblocks]
@@ -29,7 +29,7 @@
 (new button% [parent desti][label "Send"]
      [callback (lambda (button event)(set-route dest train))])
                                                
-; Function to build a switch, shown in col1 on the gui.
+;; function to build a switch, shown in col1 on the gui.
 (define (make-switch-gui id state)
   (new radio-box% [parent (new horizontal-panel% [parent col1])]
        [label (string-append "S-"(number->string id))]
@@ -40,10 +40,10 @@
                                             (value (send radio get-selection)))
                                         (set-sw-position! id (+ 1 value))))]))
 
-; Vector to hold the detecion blocks. 
+;; vector to hold the detecion blocks. 
 (define gui-dblocks(make-vector (+ NR-OF-DBLOCKS 1) 0))
 
-; Function to build detection blocks, shown in col2 on the gui.
+;; function to build detection blocks, shown in col2 on the gui.
 (define (make-dblock-gui id name)
   (let ((dblock 
          (new gauge% [parent (new horizontal-panel% [parent col2])]

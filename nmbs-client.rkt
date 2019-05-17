@@ -6,41 +6,43 @@
 (define NR-OF-TRAINS 2)
 (define NR-OF-DBLOCKS 16)
 
-;; the following functions forward the function call as a scheme list to the tcp server.
-;; get-train-dblock receives and returns the value asked for.
-
-(define (set-speed! id value)
-  (write (list 'speed! id value) out)
-  (flush-output out))
-  
-(define (set-sw-position! id value)
-  (write (list 'switch! id value) out)
-  (flush-output out))
-  
-(define (add-train id previous-pos position)
-  (write (list 'train! id previous-pos position) out)
+;; funtion that send arg as a scheme list over tcp.
+(define (send-msg . arg)
+  (write arg out)
   (flush-output out))
 
-(define (get-train-dblock train)
-  (write (list 'dblock train) out)
+;; funtion that send and receive arg as a scheme list over tcp.
+(define (send-receive-msg . arg)
+  (write arg out)
   (flush-output out)
   (first (read in)))
 
+;; collection of functions sending a tcp message from a function call.
+(define (set-speed! id value)
+  (send-msg 'speed! id value))
+   
+(define (set-sw-position! id value)
+  (send-msg 'switch! id value)) 
+  
+(define (add-train id previous-pos position)
+  (send-msg 'train! id previous-pos position)) 
+
+(define (get-train-dblock train)
+  (send-receive-msg 'dblock train))
+
 (define (set-route dest train)
-  (write (list 'route! dest train) out)
-  (flush-output out))
+  (send-msg 'route! dest train))
 
 (define (travel-route train)
-  (write (list 'travel train) out)
-  (flush-output out))
+  (send-msg 'travel train))
 
 (define (reset-route train)
-  (write (list 'reset train) out)
-  (flush-output out))
+  (send-msg 'reset train))
   
 ;; the values neccesary to make tcp communication possible.
 (define-values (in out) (tcp-connect "localhost" 9883))
 
+;; to close the tcp communication ports.
 (define (close-ports)
   (close-input-port in)
   (close-output-port out))

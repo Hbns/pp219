@@ -52,11 +52,9 @@
   ; this function is called to build the gui by looping over the detection bock-vector.
   (define (build-gui)
     (define (loop id) 
-      (if (<= id number-of-dblocks)
-          (begin
-            (make-dblock-gui id (vector-ref db-vector id))
-            (loop (+ 1 id)))
-          'No-dblocks?))
+      (when (<= id number-of-dblocks)
+        (make-dblock-gui id (vector-ref db-vector id))
+        (loop (+ 1 id))))
     (loop 1))
 
   ; dispatch funtion
@@ -84,11 +82,9 @@
   ; this function is called to build the gui by looping over the detection bock-vector.
   (define (build-gui)
     (define (loop id) 
-      (if (<= id number-of-trains)
-          (begin
-            (make-train-gui id)
-            (loop (+ 1 id)))
-          'No-Trains?))
+      (when (<= id number-of-trains)
+        (make-train-gui id)
+        (loop (+ 1 id))))
     (loop 1))
 
   ; dispath functie
