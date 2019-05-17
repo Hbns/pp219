@@ -5,10 +5,6 @@
 (require "graphtrack.rkt")
 (require rackunit)
 
-;;some rackunit testing.
-(check-equal? (slice (list 1 2 3 4 5 6) 2 3)(list 3 4 5))
-(check-equal? (get-switch-nr "S271") "27")
-
 (provide set-speed! set-sw-position! add-train get-train-dblock set-route travel-route reset-route)
 
 ;; Total number of trains.
@@ -172,3 +168,7 @@
 ;; reset the route of a train.
 (define (reset-route train)
   (add-route train '()))
+
+;;some rackunit testing.
+(check-equal? (slice (list 1 2 3 4 5 6) 2 3)(list 3 4 5))
+(check-equal? (get-switch-nr "S271") "27")
