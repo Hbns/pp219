@@ -1,1 +1,0 @@
-("7.1" ("7b8a92c0d9d52697057524820111fd0b13ab7745" . "863987c85435bd849b205c8637d830ea7c852e16") (collects #"errortrace" #"errortrace-key.rkt") (collects #"r6rs" #"lang" #"reader.rkt") (collects #"r6rs" #"main.rkt") (collects #"r6rs" #"private" #"prelims.rkt") (collects #"rnrs" #"base-6.rkt") (collects #"rnrs" #"mutable-pairs-6.rkt") (collects #"srfi" #"%3a9.rkt"))
