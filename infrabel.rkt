@@ -169,6 +169,7 @@
 (define (reset-route train)
   (add-route train '()))
 
-;;some rackunit testing.
+;; some rackunit testing, whitebox testing was used to build this application.
 (check-equal? (slice (list 1 2 3 4 5 6) 2 3)(list 3 4 5))
 (check-equal? (get-switch-nr "S271") "27")
+(check-pred false? (not (section-free? (list "1-1" "S281" "1-7"))))
