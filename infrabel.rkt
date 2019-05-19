@@ -9,6 +9,7 @@
 
 ;; Total number of trains.
 (define NR-OF-TRAINS 2)
+(define list-of-trains (list 1 2))
 
 ;; Setup and start the simulator 
 (setup-hardware)
@@ -16,10 +17,14 @@
 
 ;; The following functions are provided to ask for or set changes in the simulator.
 (define (add-train train previous-pos position)
-  (add-loco (string->symbol (string-append "T-"(number->string train))) previous-pos position))
+  (add-loco (string->symbol (string-append "T-"(number->string train))) previous-pos position)
+  (dblock-occp! (get-dblock-nr (symbol->string position))))
 
 (define (set-speed! train speed)
   (set-loco-speed! train speed))
+
+(define (get-speed train)
+  (get-loco-speed train))
 
 (define (set-sw-position! switch position)
   (set-switch-position! switch position))
