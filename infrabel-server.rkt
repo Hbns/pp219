@@ -14,7 +14,6 @@
             (write m out)
             (flush-output out))
           (define (server-translate list)
-            (displayln list);prints log to console 
             (let [(proc (first list))]
               (cond [(eq? proc 'speed!)(set-speed! (list-ref list 1)(list-ref list 2))]
                     [(eq? proc 'switch!)(set-sw-position! (list-ref list 1)(list-ref list 2))]

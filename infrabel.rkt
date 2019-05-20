@@ -154,8 +154,8 @@
           (begin
             (for-each (lambda (position)(position-inspector! position))section)
             (if (direction? start destination)
-                (set-speed! train-symbol 200)
-                (set-speed! train-symbol -200))
+                (set-speed! train-symbol 127)
+                (set-speed! train-symbol -127))
             (stopat (string->symbol destination) train-symbol)
             (free-reservations section)
             (dblock-occp! (get-dblock-nr destination)))
